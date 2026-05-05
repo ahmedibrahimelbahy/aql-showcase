@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AQL — Playable Dashboards</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0B0A08;
+      --bg-elevated: #15130F;
+      --bg-floating: #1F1B14;
+      --border: #2A2620;
+      --border-bright: #3A3527;
+      --cream: #EDE6D3;
+      --cream-dim: #B8B0A0;
+      --muted: #6B6557;
+      --lime: #CCFF33;
+      --lime-dim: #A8D628;
+      --amber: #E97451;
+      --danger: #FF4538;
+      --channel-shopify: #C7F46A;
+      --channel-bol: #FFC857;
+      --channel-amazon: #E97451;
+      --channel-temu: #FF8E72;
+      --channel-noon: #EDE6D3;
+    }
+    * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    html, body { background: var(--bg); }
+    body {
+      color: var(--cream);
+      font-family: 'Manrope', sans-serif;
+      overflow-x: hidden;
+    }
+    .font-serif-italic { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; }
+    .font-serif { font-family: 'Instrument Serif', serif; font-weight: 400; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    .grain::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+      opacity: 0.08; mix-blend-mode: overlay; z-index: 100;
+    }
+
+    .section-glow {
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 60% 40% at 80% 10%, rgba(204, 255, 51, 0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 35% at 10% 90%, rgba(233, 116, 81, 0.05) 0%, transparent 60%);
+    }
+
+    .tech-grid {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(237, 230, 211, 0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(237, 230, 211, 0.022) 1px, transparent 1px);
+      background-size: 80px 80px;
+      mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black, transparent 90%);
+    }
+
+    .tracking-spec { letter-spacing: 0.16em; }
+    .tracking-display { letter-spacing: -0.035em; }
+
+    /* Corner registration marks */
+    .corner {
+      position: absolute; width: 14px; height: 14px;
+      pointer-events: none;
+    }
+    .corner::before, .corner::after {
+      content: ''; position: absolute; background: var(--cream-dim); opacity: 0.45;
+    }
+    .corner.tl { top: 10px; left: 10px; }
+    .corner.tl::before { top: 0; left: 0; width: 14px; height: 1px; }
+    .corner.tl::after  { top: 0; left: 0; width: 1px; height: 14px; }
+    .corner.tr { top: 10px; right: 10px; }
+    .corner.tr::before { top: 0; right: 0; width: 14px; height: 1px; }
+    .corner.tr::after  { top: 0; right: 0; width: 1px; height: 14px; }
+    .corner.bl { bottom: 10px; left: 10px; }
+    .corner.bl::before { bottom: 0; left: 0; width: 14px; height: 1px; }
+    .corner.bl::after  { bottom: 0; left: 0; width: 1px; height: 14px; }
+    .corner.br { bottom: 10px; right: 10px; }
+    .corner.br::before { bottom: 0; right: 0; width: 14px; height: 1px; }
+    .corner.br::after  { bottom: 0; right: 0; width: 1px; height: 14px; }
+
+    /* Status pill */
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.32rem 0.6rem;
+      background: rgba(11, 10, 8, 0.6);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-bright);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.58rem; font-weight: 500;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--cream);
+    }
+    .status-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+
+    .lime-underline {
+      background-image: linear-gradient(transparent 76%, rgba(204, 255, 51, 0.55) 76%, rgba(204, 255, 51, 0.55) 92%, transparent 92%);
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      padding: 0 0.04em;
+    }
+
+    /* Tabs */
+    .tab-btn {
+      position: relative;
+      display: inline-flex; flex-direction: column; align-items: flex-start; gap: 0.3rem;
+      padding: 0.9rem 2.4rem 0.9rem 1.15rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--cream-dim);
+      cursor: pointer;
+      transition: border-color 0.3s cubic-bezier(0.2,0.8,0.25,1), background 0.3s, transform 0.3s cubic-bezier(0.2,0.8,0.25,1);
+      min-width: 0;
+      width: 100%;
+      min-height: 44px;
+      text-align: left;
+    }
+    @media (min-width: 640px) {
+      .tab-btn { min-width: 240px; width: auto; }
+    }
+    .tab-btn:hover { border-color: var(--border-bright); background: rgba(237,230,211,0.02); transform: translateY(-1px); }
+    .tab-btn:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
+    .tab-btn .tab-num {
+      font-size: 0.58rem; color: var(--muted);
+    }
+    .tab-btn .tab-label {
+      font-size: 0.78rem; color: var(--cream-dim); font-weight: 500;
+    }
+    .tab-btn[data-active="true"] {
+      background: var(--bg-elevated);
+      border-color: var(--lime);
+      box-shadow:
+        inset 0 1px 0 rgba(237,230,211,0.04),
+        0 8px 30px -8px rgba(204,255,51,0.25),
+        0 1px 0 rgba(204,255,51,0.15);
+    }
+    .tab-btn[data-active="true"] .tab-label { color: var(--cream); }
+    .tab-btn[data-active="true"] .tab-num { color: var(--lime); }
+    .tab-btn[data-active="true"]::after {
+      content: ''; position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--lime);
+      box-shadow: 0 0 12px var(--lime);
+      animation: liveBlink 2s ease-in-out infinite;
+    }
+    @keyframes liveBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Dashboard frame */
+    .dash-frame {
+      position: relative;
+      background: linear-gradient(180deg, #15130F 0%, #100E0B 100%);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow:
+        inset 0 1px 0 rgba(237,230,211,0.03),
+        0 24px 60px -20px rgba(0,0,0,0.7),
+        0 8px 24px -12px rgba(204,255,51,0.06);
+    }
+
+    /* Panel inside dashboard */
+    .panel {
+      background: linear-gradient(180deg, rgba(31,27,20,0.5) 0%, rgba(21,19,15,0.5) 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      position: relative;
+    }
+
+    .panel-mono-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .kpi-num {
+      font-family: 'Instrument Serif', serif;
+      letter-spacing: -0.02em;
+      color: var(--cream);
+      line-height: 1;
+    }
+
+    /* Tab content swap */
+    .dash-pane {
+      display: none;
+      animation: paneIn 0.55s cubic-bezier(0.2,0.8,0.25,1);
+    }
+    .dash-pane[data-active="true"] {
+      display: block;
+    }
+    @keyframes paneIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Filter chip */
+    .chip {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.55rem 0.85rem;
+      min-height: 44px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--cream-dim);
+      cursor: pointer;
+      background: transparent;
+      transition: border-color 0.25s, color 0.25s, background 0.25s, transform 0.25s cubic-bezier(0.2,0.8,0.25,1);
+    }
+    @media (min-width: 640px) {
+      .chip { padding: 0.38rem 0.7rem; min-height: 0; }
+    }
+    .chip:hover { border-color: var(--border-bright); color: var(--cream); transform: translateY(-1px); }
+    .chip:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
+    .chip[data-active="true"] {
+      background: rgba(204,255,51,0.08);
+      border-color: var(--lime);
+      color: var(--cream);
+    }
+    .chip[data-active="true"] .chip-dot { background: var(--lime); box-shadow: 0 0 8px var(--lime); }
+    .chip-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--muted); }
+
+    /* Status pills (table) */
+    .pill-stock {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.55rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      border: 1px solid;
+    }
+    .pill-stock.in   { color: #DDF38C; border-color: rgba(204,255,51,0.4); background: rgba(204,255,51,0.06); }
+    .pill-stock.low  { color: #FFD9A1; border-color: rgba(255,200,87,0.45); background: rgba(255,200,87,0.06); }
+    .pill-stock.out  { color: #FFB1A6; border-color: rgba(255,69,56,0.45); background: rgba(255,69,56,0.06); }
+    .pill-stock .dot { width: 5px; height: 5px; border-radius: 50%; }
+    .pill-stock.in  .dot { background: var(--lime); box-shadow: 0 0 6px var(--lime); }
+    .pill-stock.low .dot { background: #FFC857; }
+    .pill-stock.out .dot { background: var(--danger); }
+
+    /* Channel pill (orders) */
+    .channel-pill {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      padding: 0.16rem 0.5rem;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.55rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      border: 1px solid var(--border-bright);
+      background: rgba(11,10,8,0.5);
+    }
+    .channel-pill .cdot { width: 5px; height: 5px; border-radius: 50%; }
+
+    /* Order row */
+    .order-row {
+      display: grid;
+      grid-template-columns: 70px 110px 90px 70px 1fr 80px;
+      gap: 0.75rem;
+      align-items: center;
+      padding: 0.55rem 0.85rem;
+      border-bottom: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.66rem;
+      color: var(--cream-dim);
+      letter-spacing: 0.04em;
+    }
+    .order-row.new {
+      animation: orderIn 0.7s cubic-bezier(0.2,0.8,0.25,1);
+    }
+    @keyframes orderIn {
+      0%   { opacity: 0; transform: translateX(-12px); background: rgba(204,255,51,0.18); }
+      30%  { background: rgba(204,255,51,0.12); }
+      100% { opacity: 1; transform: translateX(0); background: transparent; }
+    }
+    .order-row .ts { color: var(--muted); font-size: 0.6rem; letter-spacing: 0.1em; }
+    .order-row .oid { color: var(--cream); }
+    .order-row .val { color: var(--cream); text-align: right; font-weight: 500; }
+
+    /* Tooltip */
+    .tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: rgba(11,10,8,0.95);
+      border: 1px solid var(--border-bright);
+      border-radius: 8px;
+      padding: 0.45rem 0.65rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.06em;
+      color: var(--cream);
+      transform: translate(-50%, -110%);
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.18s;
+      z-index: 50;
+      box-shadow: 0 6px 18px -8px rgba(0,0,0,0.7);
+    }
+    .tooltip[data-show="true"] { opacity: 1; }
+    .tooltip .t-label { color: var(--muted); margin-right: 0.4rem; }
+    .tooltip .t-val { color: var(--lime); }
+
+    /* Inventory row hover */
+    .inv-row {
+      display: grid;
+      grid-template-columns: 90px 1fr 72px 70px 96px 90px 90px;
+      gap: 0.75rem;
+      align-items: center;
+      padding: 0.6rem 0.85rem;
+      border-bottom: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.66rem;
+      color: var(--cream-dim);
+      transition: background 0.2s;
+    }
+    .inv-row:hover { background: rgba(237,230,211,0.025); }
+    .inv-row .name { color: var(--cream); font-family: 'Manrope', sans-serif; font-size: 0.78rem; letter-spacing: 0; }
+
+    /* Funnel bars */
+    .funnel-bar {
+      position: relative; height: 32px;
+      background: linear-gradient(90deg, rgba(204,255,51,0.18), rgba(204,255,51,0.06));
+      border: 1px solid rgba(204,255,51,0.25);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .funnel-bar.amber {
+      background: linear-gradient(90deg, rgba(255,200,87,0.18), rgba(255,200,87,0.05));
+      border-color: rgba(255,200,87,0.3);
+    }
+    .funnel-bar.cream {
+      background: linear-gradient(90deg, rgba(237,230,211,0.10), rgba(237,230,211,0.03));
+      border-color: rgba(237,230,211,0.18);
+    }
+
+    /* "Live" pulse dot for orders header */
+    .live-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--lime);
+      box-shadow: 0 0 10px var(--lime);
+      animation: liveBlink 1.6s ease-in-out infinite;
+    }
+
+    /* Sparkline tip */
+    @keyframes tipPulse {
+      0%, 100% { opacity: 0.6; r: 2; }
+      50% { opacity: 1; r: 3; }
+    }
+    .spark-tip { animation: tipPulse 1.8s ease-in-out infinite; }
+
+    /* Tooltip helper for charts */
+    .chart-host { position: relative; }
+    .hover-target { cursor: crosshair; }
+    .hover-target:hover circle.dot-hover { opacity: 1 !important; }
+
+    /* Sparkline */
+    .spark { width: 86px; height: 22px; display: block; }
+
+    /* Continue link */
+    .continue-link {
+      display: inline-flex; align-items: center; gap: 0.7rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--cream);
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--border-bright);
+      transition: color 0.25s, border-color 0.25s, transform 0.25s cubic-bezier(0.2,0.8,0.25,1);
+    }
+    .continue-link:hover { color: var(--lime); border-color: var(--lime); transform: translateX(2px); }
+    .continue-link:focus-visible { outline: 2px solid var(--lime); outline-offset: 4px; }
+
+    /* country flag-mark (mono colored squares) */
+    .flag-mark {
+      display: inline-flex; gap: 1px;
+      width: 18px; height: 12px; border-radius: 2px; overflow: hidden;
+      border: 1px solid var(--border-bright);
+    }
+    .flag-mark span { flex: 1; }
+
+    /* Pie hover */
+    .pie-slice { transition: transform 0.25s cubic-bezier(0.2,0.8,0.25,1), opacity 0.25s; transform-origin: center; cursor: pointer; }
+    .pie-slice:hover { transform: scale(1.04); }
+    .pie-slice.dim { opacity: 0.35; }
+
+    /* Bars hover */
+    rect.bar-cat { transition: opacity 0.2s; cursor: crosshair; }
+    rect.bar-cat:hover { opacity: 0.85; }
+
+    /* No transition-all anywhere */
+
+    /* iOS Safari: -webkit prefix for backdrop-filter */
+    .status-pill { -webkit-backdrop-filter: blur(10px); }
+
+    /* Horizontal-scroll wrapper for tables/feeds on mobile */
+    .mobile-hscroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+    .mobile-hscroll > * { min-width: 720px; }
+    @media (min-width: 1024px) {
+      .mobile-hscroll { overflow-x: visible; }
+      .mobile-hscroll > * { min-width: 0; }
+    }
+
+    /* Mobile-only adjustments */
+    @media (max-width: 1023px) {
+      /* Dashboard frame: tighter inner padding so content fits 393px */
+      .dash-pane > .grid.grid-cols-12.gap-5.p-6,
+      .dash-pane > .p-6 {
+        padding: 1rem;
+        gap: 1rem;
+      }
+      .dash-pane .px-7 { padding-left: 1rem; padding-right: 1rem; }
+      .dash-pane .py-5 { padding-top: 1rem; padding-bottom: 1rem; }
+      .panel.p-5 { padding: 1rem; }
+      .panel.p-4 { padding: 0.85rem; }
+
+      /* KPI numbers shrink on small screens to avoid overflow */
+      .kpi-num.text-\[3rem\] { font-size: 2rem; }
+      .kpi-num.text-\[2\.2rem\] { font-size: 1.6rem; }
+      .kpi-num.text-\[1\.85rem\] { font-size: 1.4rem; }
+      .kpi-num.text-\[1\.9rem\] { font-size: 1.5rem; }
+      .kpi-num.text-\[1\.4rem\] { font-size: 1.2rem; }
+
+      /* Bar/orders/area axis labels: spread across full width with small font */
+      .axis-row {
+        font-size: 7.5px;
+        letter-spacing: 0.06em;
+        gap: 0;
+      }
+      .axis-row > span {
+        flex: 0 0 auto;
+        min-width: 0;
+      }
+
+      /* Pie chart row: keep side-by-side but tighten */
+      #fin-pie { width: 110px; height: 110px; }
+
+      /* Hourly chart legend: wrap so it doesn't overflow */
+      .ord-legend { flex-wrap: wrap; gap: 0.4rem 0.75rem; }
+    }
+
+    /* Use 100dvh for any 100vh fallback (none in this section, but safe to add) */
+    @supports (height: 100dvh) {
+      .min-h-screen { min-height: 100dvh; }
+    }
+  </style>
+</head>
+<body class="grain min-h-screen relative">
+  <div class="tech-grid"></div>
+
+  <section class="relative pt-20 pb-16">
+    <div class="section-glow"></div>
+
+    <div class="relative z-10 max-w-[1440px] mx-auto px-6 lg:px-12">
+
+      <!-- Section header -->
+      <div class="grid grid-cols-12 gap-x-0 gap-y-8 lg:gap-8 mb-10 items-end">
+        <div class="col-span-12 lg:col-span-7">
+          <div class="flex items-center gap-3 font-mono text-[10.5px] tracking-spec uppercase text-[var(--cream-dim)] mb-5">
+            <span class="block w-7 h-px bg-[var(--cream-dim)]"></span>
+            <span>Fig.02 / Playable Interfaces</span>
+          </div>
+          <h2 class="font-serif text-[clamp(1.65rem,7vw,3.6rem)] leading-[1.05] tracking-display text-[var(--cream)]">
+            Three dashboards. <span class="font-serif-italic">Lightly anonymized.</span> <span class="font-serif-italic"><span class="lime-underline">Fully alive.</span></span>
+          </h2>
+        </div>
+        <div class="col-span-12 lg:col-span-5">
+          <p class="text-[var(--cream-dim)] text-[0.95rem] leading-[1.65] max-w-[44ch] lg:ml-auto lg:text-right">
+            Each panel below is a working recreation of an interface we shipped to a real cross-border brand —
+            <span class="text-[var(--cream)]">the data is synthetic, the wiring is not.</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex flex-wrap gap-3 mb-6" role="tablist" aria-label="Dashboard demos">
+        <button class="tab-btn" data-tab="finance" data-active="true" role="tab">
+          <span class="tab-num">DEMO 01 / FINANCE</span>
+          <span class="tab-label">Finance Command</span>
+        </button>
+        <button class="tab-btn" data-tab="inventory" data-active="false" role="tab">
+          <span class="tab-num">DEMO 02 / INVENTORY</span>
+          <span class="tab-label">Inventory Oracle</span>
+        </button>
+        <button class="tab-btn" data-tab="orders" data-active="false" role="tab">
+          <span class="tab-num">DEMO 03 / ORDERS</span>
+          <span class="tab-label">Multi-channel Orders</span>
+        </button>
+      </div>
+
+      <!-- Dashboard frame -->
+      <div class="dash-frame" style="min-height: 820px;">
+        <span class="corner tl"></span>
+        <span class="corner tr"></span>
+        <span class="corner bl"></span>
+        <span class="corner br"></span>
+
+        <!-- ============ FINANCE COMMAND ============ -->
+        <div class="dash-pane" data-pane="finance" data-active="true">
+          <!-- Header bar -->
+          <div class="flex flex-wrap items-center justify-between gap-3 px-7 py-5 border-b border-[var(--border)]">
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+              <span class="font-mono text-[10px] tracking-spec uppercase text-[var(--lime)]">DASH 01</span>
+              <span class="font-serif-italic text-[1.4rem] text-[var(--cream)] leading-none">Finance Command</span>
+              <span class="hidden md:inline font-mono text-[9.5px] tracking-spec uppercase text-[var(--muted)]">Brand · House of Aurelia</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="status-pill"><span class="status-dot" style="background: var(--lime); box-shadow: 0 0 6px var(--lime);"></span>Live · synced 12s ago</span>
+              <span class="status-pill"><span class="status-dot" style="background: var(--cream-dim);"></span>FY · Q2 2026</span>
+            </div>
+          </div>
+
+          <!-- Body grid -->
+          <div class="grid grid-cols-12 gap-5 p-6">
+
+            <!-- Revenue counter & area chart -->
+            <div class="col-span-12 lg:col-span-8 panel p-5">
+              <span class="corner tl"></span>
+              <span class="corner tr"></span>
+              <div class="flex flex-wrap items-start justify-between gap-3 mb-3">
+                <div>
+                  <div class="panel-mono-label">REVENUE · LAST 30 DAYS</div>
+                  <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 mt-2">
+                    <span id="fin-revenue" class="kpi-num text-[3rem]">€0</span>
+                    <span class="font-mono text-[10px] tracking-spec uppercase text-[var(--lime)]">▲ 12.4% MoM</span>
+                  </div>
+                  <div class="font-mono text-[9.5px] tracking-spec uppercase text-[var(--muted)] mt-1">Gross of refunds · all channels</div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <button class="chip" data-active="true">30D</button>
+                  <button class="chip">90D</button>
+                  <button class="chip">YTD</button>
+                </div>
+              </div>
+
+              <!-- Area chart -->
+              <div class="chart-host mt-2">
+                <svg id="fin-area" viewBox="0 0 800 220" class="w-full h-[220px] hover-target" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#CCFF33" stop-opacity="0.45"/>
+                      <stop offset="100%" stop-color="#CCFF33" stop-opacity="0"/>
+                    </linearGradient>
+                    <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stop-color="#A8D628"/>
+                      <stop offset="100%" stop-color="#CCFF33"/>
+                    </linearGradient>
+                  </defs>
+                  <!-- horizontal grid -->
+                  <g stroke="#2A2620" stroke-width="0.5" stroke-dasharray="2 5">
+                    <line x1="0" y1="44"  x2="800" y2="44"/>
+                    <line x1="0" y1="110" x2="800" y2="110"/>
+                    <line x1="0" y1="176" x2="800" y2="176"/>
+                  </g>
+                  <path id="fin-area-fill" fill="url(#areaGrad)"></path>
+                  <path id="fin-area-line" fill="none" stroke="url(#lineGrad)" stroke-width="1.6"></path>
+                  <g id="fin-area-dots"></g>
+                  <line id="fin-cursor" x1="0" y1="0" x2="0" y2="220" stroke="#EDE6D3" stroke-width="0.5" stroke-dasharray="2 3" opacity="0"></line>
+                  <circle id="fin-cursor-dot" r="4" fill="#CCFF33" stroke="#0B0A08" stroke-width="1.5" opacity="0"/>
+                </svg>
+                <div id="fin-area-tip" class="tooltip"><span class="t-label">DAY</span><span id="fin-tip-day"></span> &nbsp; <span class="t-label">REV</span><span id="fin-tip-rev" class="t-val"></span></div>
+                <!-- x-axis ticks -->
+                <div class="axis-row flex justify-between font-mono text-[9px] tracking-spec uppercase text-[var(--muted)] mt-2 px-1">
+                  <span>06 APR</span><span>12 APR</span><span>18 APR</span><span>24 APR</span><span>30 APR</span><span>05 MAY</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stat cards -->
+            <div class="col-span-12 lg:col-span-4 grid grid-cols-1 gap-4">
+              <div class="panel p-4">
+                <div class="panel-mono-label">GROSS MARGIN</div>
+                <div class="flex items-baseline gap-2 mt-2">
+                  <span id="fin-gm" class="kpi-num text-[1.85rem]">0%</span>
+                  <span class="font-mono text-[9.5px] tracking-spec uppercase text-[var(--lime)]">▲ 1.8 pts</span>
+                </div>
+                <svg viewBox="0 0 200 30" class="w-full h-[26px] mt-2"><polyline points="0,22 16,18 32,20 48,14 64,16 80,11 96,13 112,9 128,12 144,7 160,10 176,5 192,7 200,4" fill="none" stroke="#CCFF33" stroke-width="1.4"/></svg>
+              </div>
+              <div class="panel p-4">
+                <div class="panel-mono-label">AD SPEND · MTD</div>
+                <div class="flex items-baseline gap-2 mt-2">
+                  <span id="fin-ads" class="kpi-num text-[1.85rem]">€0</span>
+                  <span class="font-mono text-[9.5px] tracking-spec uppercase text-[var(--amber)]">▲ 6.2%</span>
+                </div>
+                <svg viewBox="0 0 200 30" class="w-full h-[26px] mt-2"><polyline points="0,18 16,15 32,17 48,12 64,14 80,9 96,12 112,8 128,10 144,11 160,8 176,12 192,9 200,11" fill="none" stroke="#E97451" stroke-width="1.4"/></svg>
+              </div>
+              <div class="panel p-4">
+                <div class="panel-mono-label">MER · BLENDED</div>
+                <div class="flex items-baseline gap-2 mt-2">
+                  <span id="fin-mer" class="kpi-num text-[1.85rem]">0.00</span>
+                  <span class="font-mono text-[9.5px] tracking-spec uppercase text-[var(--cream-dim)]">target 4.2x</span>
+                </div>
+                <svg viewBox="0 0 200 30" class="w-full h-[26px] mt-2"><polyline points="0,18 16,16 32,12 48,15 64,11 80,13 96,9 112,11 128,7 144,10 160,6 176,9 192,5 200,8" fill="none" stroke="#EDE6D3" stroke-width="1.2"/></svg>
+              </div>
+            </div>
+
+            <!-- Bar chart - expense categories -->
+            <div class="col-span-12 lg:col-span-7 panel p-5">
+              <span class="corner tl"></span>
+              <span class="corner tr"></span>
+              <div class="flex items-start justify-between mb-3">
+                <div>
+                  <div class="panel-mono-label">EXPENSES · BY CATEGORY</div>
+                  <div class="font-serif-italic text-[1.2rem] text-[var(--cream)] mt-1">Where the cash goes.</div>
+                </div>
+                <span class="font-mono text-[9.5px] tracking-spec uppercase text-[var(--muted)]">€ 312,540 / mo</span>
+              </div>
+              <div class="chart-host">
+                <svg id="fin-bars" viewBox="0 0 700 200" class="w-full h-[200px]" preserveAspectRatio="none"></svg>
+                <div id="fin-bar-tip" class="tooltip"><span id="fin-bar-label" class="t-label"></span><span id="fin-bar-val" class="t-val"></span></div>
+              </div>
+              <div class="axis-row flex justify-between font-mono text-[9px] tracking-spec uppercase text-[var(--muted)] mt-2 px-1">
+                <span>COGS</span><span>ADS</span><span>FULFIL</span><span>PAYROLL</span><span>SAAS</span><span>SHIPPING</span><span>VAT</span><span>OTHER</span>
+              </div>
+            </div>
+
+            <!-- Pie - country split -->
+            <div class="col-span-12 lg:col-span-5 panel p-5">
+              <span class="corner tl"></span>
+              <span class="corner tr"></span>
+              <div class="flex items-start justify-between mb-3">
+                <div>
+                  <div class="panel-mono-label">REVENUE · BY MARKET</div>
+                  <div class="font-serif-italic text-[1.2rem] text-[var(--cream)] mt-1">5 countries. 1 view.</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-5">
+                <div class="chart-host">
+                  <svg id="fin-pie" viewBox="-100 -100 200 200" class="w-[150px] h-[150px]"></svg>
+                  <div id="fin-pie-tip" class="tooltip"><span class="t-label" id="fin-pie-label"></span><span class="t-val" id="fin-pie-val"></span></div>
+                </div>
+                <ul id="fin-pie-legend" class="flex-1 space-y-2 font-mono text-[10.5px] tracking-spec uppercase text-[var(--cream-dim)]"></ul>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ============ INVENTORY ORACLE ============ -->
+        <div class="dash-pane" data-pane="inventory" data-active="false">
+          <div class="flex flex-wrap items-center justify-between gap-3 px-7 py-5 border-b border-[var(--border)]">
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+              <span class="font-mono text-[10px] tracking-spec uppercase text-[var(--lime)]">DASH 02</span>
+              <span class="font-serif-italic text-[1.4rem] text-[var(--cream)] leading-none">Inventory Oracle</span>
+              <span class="hidden md:inline font-mono text-[9.5px] tracking-spec uppercase text-[var(--muted)]">Brand · Maison Veridia</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="status-pill"><span class="status-dot" style="background: var(--lime); box-shadow: 0 0 6px var(--lime);"></span>Live · 4 warehouses</span>
+              <span class="status-pill"><span class="status-dot" style="background: var(--amber);"></span>11 SKU alerts</span>
+            </div>
+          </div>
+
+          <div class="p-6 space-y-5">
+            <!-- KPI row -->
+            <div class="grid grid-cols-12 gap-4">
+              <div class="panel p-4 col-span-12 md:col-span-4">
+                <div class="panel-mono-label">TOTAL SKUs</div>
+                <div class="flex items-baseline gap-2 mt-2">
+                  <span id="inv-skus" class="kpi-num text-[2.2rem]">0</span>
+                  <span class="font-mono text-[9.5px] tracking-spec uppercase text-[var(--cream-dim)]">across 4 sites</span>
+                </div>
+              </div>
+              <div class="panel p-4 col-span-12 md:col-span-4">
+                <div class="panel-mono-label">STOCK VALUE · LANDED</div>
+                <div class="flex items-baseline gap-2 mt-2">
+                  <span id="inv-value" class="kpi-num text-[2.2rem]">€0</span>
+                  <span class="font-mono text-[9.5px] tracking-spec uppercase text-[var(--lime)]">▼ 4.1% wk</span>
+                </div>
+              </div>
+              <div class="panel p-4 col-span-12 md:col-span-4">
+                <div class="panel-mono-label">REORDER ALERTS</div>
+                <div class="flex items-baseline gap-2 mt-2">
+                  <span id="inv-alerts" class="kpi-num text-[2.2rem]" style="color: var(--amber);">0</span>
+                  <span class="font-mono text-[9.5px] tracking-spec uppercase text-[var(--amber)]">3 critical</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="panel p-5">
+              <span class="corner tl"></span>
+              <span class="corner tr"></span>
+
+              <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div>
+                  <div class="panel-mono-label">TOP SKUs · BY VELOCITY</div>
+                  <div class="font-serif-italic text-[1.15rem] text-[var(--cream)] mt-1">Movement, by warehouse.</div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2" id="inv-chips">
+                  <button class="chip" data-wh="ALL" data-active="true"><span class="chip-dot"></span>ALL</button>
+                  <button class="chip" data-wh="NL" data-active="false"><span class="chip-dot"></span>NL · ROTTERDAM</button>
+                  <button class="chip" data-wh="DE" data-active="false"><span class="chip-dot"></span>DE · DUISBURG</button>
+                  <button class="chip" data-wh="FR" data-active="false"><span class="chip-dot"></span>FR · LILLE</button>
+                </div>
+              </div>
+
+              <!-- Table -->
+              <div class="mobile-hscroll border-t border-[var(--border)]">
+                <div>
+                  <!-- header -->
+                  <div class="inv-row" style="border-bottom: 1px solid var(--border-bright); padding-top: 0.7rem; padding-bottom: 0.7rem;">
+                    <span class="panel-mono-label">SKU</span>
+                    <span class="panel-mono-label">PRODUCT</span>
+                    <span class="panel-mono-label">WAREHOUSE</span>
+                    <span class="panel-mono-label" style="text-align:right;">STOCK</span>
+                    <span class="panel-mono-label">30D-VELOCITY</span>
+                    <span class="panel-mono-label">TREND</span>
+                    <span class="panel-mono-label">STATUS</span>
+                  </div>
+                  <div id="inv-tbody"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ MULTI-CHANNEL ORDERS ============ -->
+        <div class="dash-pane" data-pane="orders" data-active="false">
+          <div class="flex flex-wrap items-center justify-between gap-3 px-7 py-5 border-b border-[var(--border)]">
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+              <span class="font-mono text-[10px] tracking-spec uppercase text-[var(--lime)]">DASH 03</span>
+              <span class="font-serif-italic text-[1.4rem] text-[var(--cream)] leading-none">Multi-channel Orders</span>
+              <span class="hidden md:inline font-mono text-[9.5px] tracking-spec uppercase text-[var(--muted)]">Brand · Atelier Norden</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="status-pill"><span class="live-dot"></span>LIVE FEED</span>
+              <span class="status-pill"><span class="status-dot" style="background: var(--cream-dim);"></span>5 channels · 7 markets</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-12 gap-5 p-6">
+            <!-- Hourly bars across the top -->
+            <div class="col-span-12 panel p-5">
+              <span class="corner tl"></span>
+              <span class="corner tr"></span>
+              <div class="flex items-start justify-between mb-3">
+                <div>
+                  <div class="panel-mono-label">VOLUME · LAST 24H</div>
+                  <div class="flex items-baseline gap-3 mt-1">
+                    <span id="ord-total" class="kpi-num text-[1.9rem]">0</span>
+                    <span class="font-mono text-[9.5px] tracking-spec uppercase text-[var(--lime)]">▲ orders processed</span>
+                  </div>
+                </div>
+                <div class="ord-legend flex items-center gap-3 font-mono text-[9.5px] tracking-spec uppercase text-[var(--muted)]">
+                  <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-sm" style="background: var(--channel-shopify);"></span>Shopify</span>
+                  <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-sm" style="background: var(--channel-bol);"></span>Bol</span>
+                  <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-sm" style="background: var(--channel-amazon);"></span>Amazon</span>
+                  <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-sm" style="background: var(--channel-temu);"></span>Temu</span>
+                  <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-sm" style="background: var(--channel-noon);"></span>Noon</span>
+                </div>
+              </div>
+              <div class="chart-host">
+                <svg id="ord-hourly" viewBox="0 0 800 130" class="w-full h-[130px]" preserveAspectRatio="none"></svg>
+                <div id="ord-hourly-tip" class="tooltip"><span class="t-label">HR</span><span id="ord-hr-h"></span> &nbsp; <span class="t-label">ORDERS</span><span id="ord-hr-v" class="t-val"></span></div>
+              </div>
+              <div class="axis-row flex justify-between font-mono text-[9px] tracking-spec uppercase text-[var(--muted)] mt-1 px-1">
+                <span>00:00</span><span>04:00</span><span>08:00</span><span>12:00</span><span>16:00</span><span>20:00</span><span>NOW</span>
+              </div>
+            </div>
+
+            <!-- Live order feed -->
+            <div class="col-span-12 lg:col-span-8 panel p-0 overflow-hidden">
+              <span class="corner tl"></span>
+              <span class="corner tr"></span>
+              <div class="flex flex-wrap items-start justify-between gap-3 p-5 border-b border-[var(--border)]">
+                <div>
+                  <div class="panel-mono-label">ORDER STREAM · ALL CHANNELS</div>
+                  <div class="font-serif-italic text-[1.15rem] text-[var(--cream)] mt-1">Every sale, the moment it lands.</div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2" id="ord-chips">
+                  <button class="chip" data-channel="ALL" data-active="true"><span class="chip-dot"></span>ALL</button>
+                  <button class="chip" data-channel="Shopify" data-active="false"><span class="chip-dot"></span>SHOPIFY</button>
+                  <button class="chip" data-channel="Bol" data-active="false"><span class="chip-dot"></span>BOL</button>
+                  <button class="chip" data-channel="Amazon" data-active="false"><span class="chip-dot"></span>AMAZON</button>
+                </div>
+              </div>
+              <div class="mobile-hscroll" style="max-height: 420px; overflow-y: hidden;">
+                <div id="ord-feed"></div>
+              </div>
+            </div>
+
+            <!-- Pipeline funnel -->
+            <div class="col-span-12 lg:col-span-4 panel p-5">
+              <span class="corner tl"></span>
+              <span class="corner tr"></span>
+              <div class="panel-mono-label">FULFILMENT FUNNEL</div>
+              <div class="font-serif-italic text-[1.15rem] text-[var(--cream)] mt-1 mb-5">Today's pipeline.</div>
+
+              <ul class="space-y-4">
+                <li>
+                  <div class="flex items-center justify-between mb-1.5">
+                    <span class="font-mono text-[10px] tracking-spec uppercase text-[var(--cream)]">RECEIVED</span>
+                    <span class="font-mono text-[10px] tracking-spec uppercase text-[var(--lime)]" id="fn-received">0</span>
+                  </div>
+                  <div class="funnel-bar"><div style="height:100%; width:100%;"></div></div>
+                </li>
+                <li>
+                  <div class="flex items-center justify-between mb-1.5">
+                    <span class="font-mono text-[10px] tracking-spec uppercase text-[var(--cream)]">PICKED</span>
+                    <span class="font-mono text-[10px] tracking-spec uppercase text-[var(--lime)]" id="fn-picked">0</span>
+                  </div>
+                  <div class="funnel-bar"><div style="height:100%; width:78%; background: rgba(204,255,51,0.2);"></div></div>
+                </li>
+                <li>
+                  <div class="flex items-center justify-between mb-1.5">
+                    <span class="font-mono text-[10px] tracking-spec uppercase text-[var(--cream)]">SHIPPED</span>
+                    <span class="font-mono text-[10px] tracking-spec uppercase text-[var(--cream-dim)]" id="fn-shipped">0</span>
+                  </div>
+                  <div class="funnel-bar amber"><div style="height:100%; width:54%; background: rgba(255,200,87,0.18);"></div></div>
+                </li>
+                <li>
+                  <div class="flex items-center justify-between mb-1.5">
+                    <span class="font-mono text-[10px] tracking-spec uppercase text-[var(--cream)]">DELIVERED</span>
+                    <span class="font-mono text-[10px] tracking-spec uppercase text-[var(--cream-dim)]" id="fn-delivered">0</span>
+                  </div>
+                  <div class="funnel-bar cream"><div style="height:100%; width:32%; background: rgba(237,230,211,0.14);"></div></div>
+                </li>
+              </ul>
+
+              <div class="border-t border-[var(--border)] mt-5 pt-4 grid grid-cols-2 gap-3">
+                <div>
+                  <div class="panel-mono-label">AVG · ORDER VAL</div>
+                  <div class="kpi-num text-[1.4rem] mt-1">€ 184</div>
+                </div>
+                <div>
+                  <div class="panel-mono-label">SLA · PICK→SHIP</div>
+                  <div class="kpi-num text-[1.4rem] mt-1">2.4<span class="font-serif-italic text-[var(--lime)]">h</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Continue link -->
+      <div class="mt-12 flex items-center justify-between">
+        <span class="font-mono text-[10px] tracking-spec uppercase text-[var(--muted)]">Fig.02 · 03 of 12 dashboards shown</span>
+        <a href="#cases" class="continue-link">
+          <span>↓ Continue to selected work</span>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+  (() => {
+    'use strict';
+
+    // ====================== TAB SWAP ======================
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const panes = document.querySelectorAll('.dash-pane');
+    let activeTab = 'finance';
+    const counted = { finance: false, inventory: false, orders: false };
+
+    function activate(tab) {
+      activeTab = tab;
+      tabBtns.forEach(b => b.dataset.active = (b.dataset.tab === tab) ? 'true' : 'false');
+      panes.forEach(p => p.dataset.active = (p.dataset.pane === tab) ? 'true' : 'false');
+      runCountUp(tab);
+      if (tab === 'orders') {
+        // ensure feed populated
+        if (orderFeedEl.children.length === 0) seedFeed();
+      }
+    }
+    tabBtns.forEach(b => b.addEventListener('click', () => activate(b.dataset.tab)));
+
+    // ====================== COUNT-UP ======================
+    function countUp(el, finalText, opts = {}) {
+      if (!el) return;
+      const dur = opts.duration || 1600;
+      const start = performance.now();
+      const m = String(finalText).match(/^(\D*)([\d,.]+)(\D*)$/);
+      if (!m) { el.textContent = finalText; return; }
+      const prefix = m[1];
+      const numericRaw = m[2].replace(/,/g,'');
+      const suffix = m[3];
+      const final = parseFloat(numericRaw);
+      const decimals = (numericRaw.split('.')[1] || '').length;
+      function format(n) {
+        const fixed = n.toFixed(decimals);
+        const [intPart, decPart] = fixed.split('.');
+        const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return prefix + (decPart ? withCommas + '.' + decPart : withCommas) + suffix;
+      }
+      function frame(now) {
+        const t = Math.min(1, (now - start) / dur);
+        const eased = 1 - Math.pow(1 - t, 3);
+        el.textContent = format(final * eased);
+        if (t < 1) requestAnimationFrame(frame);
+        else el.textContent = format(final);
+      }
+      requestAnimationFrame(frame);
+    }
+
+    function runCountUp(tab) {
+      if (tab === 'finance' && !counted.finance) {
+        countUp(document.getElementById('fin-revenue'), '€1,284,902');
+        countUp(document.getElementById('fin-gm'), '64.2%');
+        countUp(document.getElementById('fin-ads'), '€87,420');
+        countUp(document.getElementById('fin-mer'), '4.31');
+        counted.finance = true;
+      }
+      if (tab === 'inventory' && !counted.inventory) {
+        countUp(document.getElementById('inv-skus'), '1,847');
+        countUp(document.getElementById('inv-value'), '€2,184,940');
+        countUp(document.getElementById('inv-alerts'), '11');
+        counted.inventory = true;
+      }
+      if (tab === 'orders' && !counted.orders) {
+        countUp(document.getElementById('ord-total'), '3,284');
+        countUp(document.getElementById('fn-received'), '3,284');
+        countUp(document.getElementById('fn-picked'), '2,562');
+        countUp(document.getElementById('fn-shipped'), '1,774');
+        countUp(document.getElementById('fn-delivered'), '1,051');
+        counted.orders = true;
+      }
+    }
+
+    // ====================== FINANCE — AREA CHART ======================
+    function seedRand(seed) {
+      let s = seed >>> 0;
+      return () => {
+        s = (s * 1664525 + 1013904223) >>> 0;
+        return s / 0xFFFFFFFF;
+      };
+    }
+    const rng = seedRand(7);
+    const days = 30;
+    const dayData = [];
+    for (let i = 0; i < days; i++) {
+      const trend = 30 + i * 0.9;
+      const wk = Math.sin(i / 6) * 7;
+      const noise = (rng() - 0.5) * 8;
+      const v = Math.max(18, trend + wk + noise);
+      dayData.push(v);
+    }
+
+    const finArea = document.getElementById('fin-area');
+    const finFill = document.getElementById('fin-area-fill');
+    const finLine = document.getElementById('fin-area-line');
+    const finCursor = document.getElementById('fin-cursor');
+    const finCursorDot = document.getElementById('fin-cursor-dot');
+    const finTip = document.getElementById('fin-area-tip');
+    const finTipDay = document.getElementById('fin-tip-day');
+    const finTipRev = document.getElementById('fin-tip-rev');
+    const W = 800, H = 220, padX = 20, padY = 18;
+
+    const max = Math.max(...dayData) * 1.05;
+    const min = Math.min(...dayData) * 0.6;
+    const xs = i => padX + (i / (days - 1)) * (W - 2 * padX);
+    const ys = v => H - padY - ((v - min) / (max - min)) * (H - 2 * padY);
+
+    let linePath = '';
+    dayData.forEach((v, i) => {
+      const cmd = i === 0 ? 'M' : 'L';
+      linePath += `${cmd}${xs(i).toFixed(1)},${ys(v).toFixed(1)} `;
+    });
+    finLine.setAttribute('d', linePath.trim());
+    finFill.setAttribute('d', linePath + `L${xs(days-1)},${H} L${xs(0)},${H} Z`);
+
+    finArea.addEventListener('mousemove', e => {
+      const rect = finArea.getBoundingClientRect();
+      const px = (e.clientX - rect.left) / rect.width * W;
+      const idx = Math.max(0, Math.min(days - 1, Math.round((px - padX) / ((W - 2*padX) / (days - 1)))));
+      const cx = xs(idx), cy = ys(dayData[idx]);
+      finCursor.setAttribute('x1', cx); finCursor.setAttribute('x2', cx);
+      finCursor.setAttribute('opacity', 1);
+      finCursorDot.setAttribute('cx', cx); finCursorDot.setAttribute('cy', cy);
+      finCursorDot.setAttribute('opacity', 1);
+      finTip.style.left = (cx / W * 100) + '%';
+      finTip.style.top = (cy / H * 100) + '%';
+      finTip.dataset.show = 'true';
+      const dayLabel = String(idx + 1).padStart(2,'0');
+      finTipDay.textContent = ' D' + dayLabel + ' ';
+      const revVal = (dayData[idx] * 1450).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      finTipRev.textContent = '€' + revVal;
+    });
+    finArea.addEventListener('mouseleave', () => {
+      finCursor.setAttribute('opacity', 0);
+      finCursorDot.setAttribute('opacity', 0);
+      finTip.dataset.show = 'false';
+    });
+
+    // ====================== FINANCE — BAR CHART ======================
+    const expenseData = [
+      { label: 'COGS',     val: 124800, color: '#CCFF33' },
+      { label: 'ADS',      val:  87420, color: '#A8D628' },
+      { label: 'FULFIL',   val:  41200, color: '#EDE6D3' },
+      { label: 'PAYROLL',  val:  38500, color: '#B8B0A0' },
+      { label: 'SAAS',     val:  12800, color: '#E97451' },
+      { label: 'SHIPPING', val:  21400, color: '#FFC857' },
+      { label: 'VAT',      val:  64200, color: '#6B6557' },
+      { label: 'OTHER',    val:   8900, color: '#3A3527' },
+    ];
+    const finBars = document.getElementById('fin-bars');
+    const barTip = document.getElementById('fin-bar-tip');
+    const barLabel = document.getElementById('fin-bar-label');
+    const barVal = document.getElementById('fin-bar-val');
+    const NS = 'http://www.w3.org/2000/svg';
+    const bw = 700, bh = 200, bPad = 16;
+    const barMax = Math.max(...expenseData.map(d => d.val));
+    const slotW = (bw - bPad * 2) / expenseData.length;
+    const barW = slotW * 0.55;
+
+    // gridlines
+    [0.25, 0.5, 0.75, 1].forEach(p => {
+      const line = document.createElementNS(NS, 'line');
+      const y = bh - bPad - p * (bh - bPad * 2);
+      line.setAttribute('x1', bPad); line.setAttribute('x2', bw - bPad);
+      line.setAttribute('y1', y); line.setAttribute('y2', y);
+      line.setAttribute('stroke', '#2A2620');
+      line.setAttribute('stroke-width', 0.5);
+      line.setAttribute('stroke-dasharray', '2 5');
+      finBars.appendChild(line);
+    });
+
+    expenseData.forEach((d, i) => {
+      const h = (d.val / barMax) * (bh - bPad * 2);
+      const x = bPad + i * slotW + (slotW - barW) / 2;
+      const y = bh - bPad - h;
+      const r = document.createElementNS(NS, 'rect');
+      r.setAttribute('x', x); r.setAttribute('y', y);
+      r.setAttribute('width', barW); r.setAttribute('height', h);
+      r.setAttribute('rx', 2);
+      r.setAttribute('fill', d.color);
+      r.setAttribute('opacity', 0.92);
+      r.classList.add('bar-cat');
+      r.dataset.label = d.label;
+      r.dataset.val = d.val;
+      r.addEventListener('mousemove', e => {
+        const rect = finBars.getBoundingClientRect();
+        const cx = (x + barW/2) / bw * 100;
+        const cy = y / bh * 100;
+        barTip.style.left = cx + '%';
+        barTip.style.top = cy + '%';
+        barTip.dataset.show = 'true';
+        barLabel.textContent = ' ' + d.label + ' ';
+        barVal.textContent = '€' + d.val.toLocaleString();
+      });
+      r.addEventListener('mouseleave', () => barTip.dataset.show = 'false');
+      finBars.appendChild(r);
+
+      // top tick mark
+      const tick = document.createElementNS(NS, 'line');
+      tick.setAttribute('x1', x); tick.setAttribute('x2', x + barW);
+      tick.setAttribute('y1', y - 2); tick.setAttribute('y2', y - 2);
+      tick.setAttribute('stroke', d.color); tick.setAttribute('stroke-width', 1.2);
+      finBars.appendChild(tick);
+    });
+
+    // ====================== FINANCE — PIE ======================
+    const pieData = [
+      { label: 'NL', val: 38, color: '#CCFF33' },
+      { label: 'DE', val: 24, color: '#EDE6D3' },
+      { label: 'FR', val: 16, color: '#E97451' },
+      { label: 'ES', val: 13, color: '#A8D628' },
+      { label: 'IT', val:  9, color: '#B8B0A0' },
+    ];
+    const pieEl = document.getElementById('fin-pie');
+    const pieTip = document.getElementById('fin-pie-tip');
+    const pieLabel = document.getElementById('fin-pie-label');
+    const pieVal = document.getElementById('fin-pie-val');
+    const pieLegend = document.getElementById('fin-pie-legend');
+    const total = pieData.reduce((s, d) => s + d.val, 0);
+    let pieAngle = -Math.PI / 2;
+    const pieR = 78, pieRi = 44;
+
+    pieData.forEach((d, i) => {
+      const a0 = pieAngle;
+      const a1 = a0 + (d.val / total) * Math.PI * 2;
+      pieAngle = a1;
+      const x0 = Math.cos(a0) * pieR, y0 = Math.sin(a0) * pieR;
+      const x1 = Math.cos(a1) * pieR, y1 = Math.sin(a1) * pieR;
+      const xi0 = Math.cos(a0) * pieRi, yi0 = Math.sin(a0) * pieRi;
+      const xi1 = Math.cos(a1) * pieRi, yi1 = Math.sin(a1) * pieRi;
+      const large = (a1 - a0) > Math.PI ? 1 : 0;
+      const path = `M${x0},${y0} A${pieR},${pieR} 0 ${large} 1 ${x1},${y1} L${xi1},${yi1} A${pieRi},${pieRi} 0 ${large} 0 ${xi0},${yi0} Z`;
+      const p = document.createElementNS(NS, 'path');
+      p.setAttribute('d', path);
+      p.setAttribute('fill', d.color);
+      p.setAttribute('opacity', 0.9);
+      p.classList.add('pie-slice');
+      p.dataset.label = d.label;
+      p.addEventListener('mouseenter', () => {
+        pieEl.querySelectorAll('.pie-slice').forEach(s => {
+          if (s !== p) s.classList.add('dim');
+        });
+        pieTip.dataset.show = 'true';
+        pieLabel.textContent = ' ' + d.label + ' ';
+        pieVal.textContent = d.val + '%';
+      });
+      p.addEventListener('mousemove', e => {
+        const rect = pieEl.getBoundingClientRect();
+        pieTip.style.left = ((e.clientX - rect.left) / rect.width * 100) + '%';
+        pieTip.style.top = ((e.clientY - rect.top) / rect.height * 100) + '%';
+      });
+      p.addEventListener('mouseleave', () => {
+        pieEl.querySelectorAll('.pie-slice').forEach(s => s.classList.remove('dim'));
+        pieTip.dataset.show = 'false';
+      });
+      pieEl.appendChild(p);
+
+      const li = document.createElement('li');
+      li.className = 'flex items-center justify-between gap-3';
+      li.innerHTML = `<span class="flex items-center gap-2"><span class="w-2 h-2 rounded-sm" style="background:${d.color}"></span>${d.label}</span><span class="text-[var(--cream)]">${d.val}%</span>`;
+      pieLegend.appendChild(li);
+    });
+
+    // center dot
+    const cdot = document.createElementNS(NS, 'circle');
+    cdot.setAttribute('r', 4); cdot.setAttribute('cx', 0); cdot.setAttribute('cy', 0);
+    cdot.setAttribute('fill', '#0B0A08'); cdot.setAttribute('stroke', '#3A3527'); cdot.setAttribute('stroke-width', 1);
+    pieEl.appendChild(cdot);
+
+    // ====================== INVENTORY — TABLE ======================
+    const inventory = [
+      { sku: 'AUR-001', name: 'Linen Shirt · Eggshell',   wh: 'NL', stock: 482, vel: 142, status: 'in'  },
+      { sku: 'AUR-007', name: 'Wool Coat · Camel',        wh: 'DE', stock:  38, vel: 86,  status: 'low' },
+      { sku: 'AUR-014', name: 'Cashmere Scarf · Slate',   wh: 'NL', stock: 318, vel: 71,  status: 'in'  },
+      { sku: 'AUR-022', name: 'Leather Belt · Cognac',    wh: 'FR', stock:   0, vel: 54,  status: 'out' },
+      { sku: 'AUR-031', name: 'Silk Tee · Ivory',         wh: 'NL', stock: 612, vel: 134, status: 'in'  },
+      { sku: 'AUR-045', name: 'Knit Polo · Olive',        wh: 'DE', stock: 128, vel: 92,  status: 'in'  },
+      { sku: 'AUR-052', name: 'Pleated Trouser · Stone',  wh: 'FR', stock:  22, vel: 48,  status: 'low' },
+      { sku: 'AUR-067', name: 'Cotton Crew · Black',      wh: 'NL', stock: 894, vel: 201, status: 'in'  },
+      { sku: 'AUR-074', name: 'Suede Loafer · Tobacco',   wh: 'DE', stock:  16, vel: 38,  status: 'low' },
+      { sku: 'AUR-088', name: 'Ribbed Tank · Sand',       wh: 'FR', stock: 446, vel: 89,  status: 'in'  },
+    ];
+
+    function spark(seed) {
+      const r = seedRand(seed);
+      const pts = [];
+      let v = 12 + r() * 8;
+      for (let i = 0; i < 14; i++) {
+        v += (r() - 0.5) * 4;
+        v = Math.max(2, Math.min(20, v));
+        pts.push(v);
+      }
+      const xs = i => i * (86 / 13);
+      const ys = v => 22 - (v / 22) * 22;
+      let path = '';
+      pts.forEach((v, i) => path += (i === 0 ? 'M' : 'L') + xs(i).toFixed(1) + ',' + ys(v).toFixed(1) + ' ');
+      const last = pts[pts.length - 1];
+      const tipX = xs(13).toFixed(1), tipY = ys(last).toFixed(1);
+      return `<svg class="spark" viewBox="0 0 86 22" preserveAspectRatio="none"><path d="${path}" fill="none" stroke="#CCFF33" stroke-width="1.2"/><circle class="spark-tip" cx="${tipX}" cy="${tipY}" r="2.4" fill="#CCFF33"/></svg>`;
+    }
+
+    const tbody = document.getElementById('inv-tbody');
+
+    function renderInventory(filter) {
+      tbody.innerHTML = '';
+      const rows = filter === 'ALL' ? inventory : inventory.filter(r => r.wh === filter);
+      // sort by velocity desc on filter change for "re-animate" feel
+      rows.sort((a, b) => b.vel - a.vel);
+      rows.forEach((r, i) => {
+        const row = document.createElement('div');
+        row.className = 'inv-row';
+        row.style.animation = `paneIn 0.5s cubic-bezier(0.2,0.8,0.25,1) ${i * 0.04}s both`;
+        const stockColor = r.status === 'out' ? 'var(--danger)' : r.status === 'low' ? '#FFC857' : 'var(--cream)';
+        const stockTxt = r.stock.toString();
+        const pillCls = r.status;
+        const pillTxt = r.status === 'in' ? 'IN STOCK' : r.status === 'low' ? 'LOW' : 'OUT';
+        row.innerHTML = `
+          <span style="color: var(--muted);">${r.sku}</span>
+          <span class="name">${r.name}</span>
+          <span>${r.wh}</span>
+          <span style="text-align:right; color: ${stockColor};">${stockTxt}</span>
+          <span><span style="color: var(--cream);">${r.vel}</span> <span style="color: var(--muted);">/30D</span></span>
+          <span>${spark(r.sku.charCodeAt(4) * 31 + r.stock)}</span>
+          <span><span class="pill-stock ${pillCls}"><span class="dot"></span>${pillTxt}</span></span>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+    renderInventory('ALL');
+
+    document.querySelectorAll('#inv-chips .chip').forEach(c => {
+      c.addEventListener('click', () => {
+        document.querySelectorAll('#inv-chips .chip').forEach(x => x.dataset.active = 'false');
+        c.dataset.active = 'true';
+        renderInventory(c.dataset.wh);
+      });
+    });
+
+    // ====================== ORDERS — HOURLY BARS ======================
+    const ordSvg = document.getElementById('ord-hourly');
+    const ordTip = document.getElementById('ord-hourly-tip');
+    const ordH = document.getElementById('ord-hr-h');
+    const ordV = document.getElementById('ord-hr-v');
+    const channelColors = {
+      Shopify: '#C7F46A',
+      Bol:     '#FFC857',
+      Amazon:  '#E97451',
+      Temu:    '#FF8E72',
+      Noon:    '#EDE6D3',
+    };
+    const channelOrder = ['Shopify','Bol','Amazon','Temu','Noon'];
+    const hourly = [];
+    const rng2 = seedRand(42);
+    for (let h = 0; h < 24; h++) {
+      const baseShape = 40 + Math.sin((h - 9) / 5) * 60 + (h > 18 ? 30 : 0);
+      const stack = {};
+      let total = 0;
+      channelOrder.forEach((c, i) => {
+        const v = Math.max(0, Math.round((baseShape + (rng2()-0.5)*40) * (i === 0 ? 0.40 : i === 1 ? 0.22 : i === 2 ? 0.20 : i === 3 ? 0.10 : 0.08)));
+        stack[c] = v;
+        total += v;
+      });
+      hourly.push({ h, stack, total });
+    }
+    const oW = 800, oH = 130, oPad = 12;
+    const oMax = Math.max(...hourly.map(d => d.total));
+    const oSlot = (oW - oPad * 2) / hourly.length;
+    const oBarW = oSlot * 0.65;
+
+    [0.5, 1].forEach(p => {
+      const line = document.createElementNS(NS, 'line');
+      const y = oH - oPad - p * (oH - oPad * 2);
+      line.setAttribute('x1', oPad); line.setAttribute('x2', oW - oPad);
+      line.setAttribute('y1', y); line.setAttribute('y2', y);
+      line.setAttribute('stroke', '#2A2620');
+      line.setAttribute('stroke-width', 0.5);
+      line.setAttribute('stroke-dasharray', '2 5');
+      ordSvg.appendChild(line);
+    });
+
+    hourly.forEach((d, i) => {
+      const x = oPad + i * oSlot + (oSlot - oBarW) / 2;
+      let yCursor = oH - oPad;
+      channelOrder.forEach(c => {
+        const segH = (d.stack[c] / oMax) * (oH - oPad * 2);
+        if (segH < 0.3) return;
+        const r = document.createElementNS(NS, 'rect');
+        r.setAttribute('x', x);
+        r.setAttribute('y', yCursor - segH);
+        r.setAttribute('width', oBarW);
+        r.setAttribute('height', segH);
+        r.setAttribute('fill', channelColors[c]);
+        r.setAttribute('opacity', 0.85);
+        ordSvg.appendChild(r);
+        yCursor -= segH;
+      });
+      // hover overlay
+      const overlay = document.createElementNS(NS, 'rect');
+      overlay.setAttribute('x', oPad + i * oSlot);
+      overlay.setAttribute('y', oPad);
+      overlay.setAttribute('width', oSlot);
+      overlay.setAttribute('height', oH - oPad * 2);
+      overlay.setAttribute('fill', 'transparent');
+      overlay.style.cursor = 'crosshair';
+      overlay.addEventListener('mouseenter', () => { ordTip.dataset.show = 'true'; });
+      overlay.addEventListener('mousemove', () => {
+        ordTip.style.left = ((x + oBarW/2) / oW * 100) + '%';
+        ordTip.style.top = ((oH - oPad - (d.total / oMax) * (oH - oPad * 2)) / oH * 100) + '%';
+        ordH.textContent = ' ' + String(d.h).padStart(2,'0') + ':00 ';
+        ordV.textContent = d.total;
+      });
+      overlay.addEventListener('mouseleave', () => { ordTip.dataset.show = 'false'; });
+      ordSvg.appendChild(overlay);
+    });
+
+    // ====================== ORDERS — LIVE FEED ======================
+    const orderFeedEl = document.getElementById('ord-feed');
+    const flagPalette = {
+      NL: ['#AE1C28','#FFFFFF','#21468B'],
+      DE: ['#000000','#DD0000','#FFCC00'],
+      FR: ['#0055A4','#FFFFFF','#EF4135'],
+      ES: ['#AA151B','#F1BF00','#AA151B'],
+      IT: ['#009246','#F1F2F1','#CE2B37'],
+      AE: ['#00732F','#FFFFFF','#000000'],
+      SA: ['#006C35','#006C35','#FFFFFF'],
+    };
+    const productNames = ['LINEN SHIRT','WOOL COAT','SILK TEE','LEATHER BELT','KNIT POLO','CASHMERE SCARF','SUEDE LOAFER','RIBBED TANK','PLEATED TROUSER','COTTON CREW'];
+    const channels = ['Shopify','Bol','Amazon','Temu','Noon'];
+    const countries = ['NL','DE','FR','ES','IT','AE','SA'];
+    const statuses = [
+      { label: 'PAID',    color: 'var(--lime)' },
+      { label: 'PICKED',  color: 'var(--cream)' },
+      { label: 'SHIPPED', color: '#FFC857' },
+      { label: 'PAID',    color: 'var(--lime)' },
+      { label: 'PAID',    color: 'var(--lime)' },
+    ];
+    let orderSeq = 18402;
+    let activeChannel = 'ALL';
+    let allOrders = [];
+
+    function makeOrder() {
+      const r = Math.random();
+      const ch = channels[Math.floor(r * channels.length)];
+      const ctry = countries[Math.floor(Math.random() * countries.length)];
+      const st = statuses[Math.floor(Math.random() * statuses.length)];
+      const val = (60 + Math.random() * 540).toFixed(0);
+      const now = new Date();
+      const ts = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
+      orderSeq++;
+      const oid = '#' + orderSeq;
+      const product = productNames[Math.floor(Math.random() * productNames.length)];
+      return { ts, ch, ctry, st, val, oid, product };
+    }
+
+    function flagHTML(c) {
+      const p = flagPalette[c] || ['#3A3527','#6B6557','#B8B0A0'];
+      return `<span class="flag-mark"><span style="background:${p[0]};"></span><span style="background:${p[1]};"></span><span style="background:${p[2]};"></span></span>`;
+    }
+
+    function rowHTML(o, isNew) {
+      return `
+        <div class="order-row${isNew ? ' new' : ''}" data-channel="${o.ch}">
+          <span class="ts">${o.ts}</span>
+          <span><span class="channel-pill"><span class="cdot" style="background:${channelColors[o.ch]};"></span>${o.ch}</span></span>
+          <span class="oid">${o.oid}</span>
+          <span class="flex items-center gap-1.5">${flagHTML(o.ctry)} <span style="color: var(--muted);">${o.ctry}</span></span>
+          <span style="color: var(--cream-dim); letter-spacing: 0.06em;">${o.product}</span>
+          <span class="val">€ ${o.val}</span>
+        </div>`;
+    }
+
+    function applyFilter() {
+      const rows = orderFeedEl.querySelectorAll('.order-row');
+      rows.forEach(r => {
+        if (activeChannel === 'ALL' || r.dataset.channel === activeChannel) {
+          r.style.display = '';
+        } else {
+          r.style.display = 'none';
+        }
+      });
+    }
+
+    function seedFeed() {
+      allOrders = [];
+      orderFeedEl.innerHTML = '';
+      for (let i = 0; i < 9; i++) {
+        const o = makeOrder();
+        // backdate timestamps
+        const past = new Date(Date.now() - i * 23000);
+        o.ts = String(past.getHours()).padStart(2,'0') + ':' + String(past.getMinutes()).padStart(2,'0') + ':' + String(past.getSeconds()).padStart(2,'0');
+        allOrders.unshift(o);
+        orderFeedEl.insertAdjacentHTML('afterbegin', rowHTML(o, false));
+      }
+      applyFilter();
+    }
+
+    function pushOrder() {
+      const o = makeOrder();
+      allOrders.unshift(o);
+      orderFeedEl.insertAdjacentHTML('afterbegin', rowHTML(o, true));
+      // keep max 12
+      while (orderFeedEl.children.length > 12) {
+        orderFeedEl.lastElementChild.remove();
+      }
+      applyFilter();
+    }
+
+    // Channel filter chips
+    document.querySelectorAll('#ord-chips .chip').forEach(c => {
+      c.addEventListener('click', () => {
+        document.querySelectorAll('#ord-chips .chip').forEach(x => x.dataset.active = 'false');
+        c.dataset.active = 'true';
+        activeChannel = c.dataset.channel;
+        applyFilter();
+      });
+    });
+
+    // Push a new order every ~3s when orders pane is active
+    setInterval(() => {
+      if (activeTab === 'orders') pushOrder();
+    }, 3200);
+
+    // ====================== INIT ======================
+    seedFeed();
+    // URL hash override: #tab=inventory or #tab=orders (for screenshots/deep links)
+    const hashTab = (location.hash.match(/tab=(\w+)/) || [])[1];
+    if (hashTab && ['finance','inventory','orders'].includes(hashTab)) {
+      activate(hashTab);
+    } else {
+      runCountUp('finance');
+    }
+  })();
+  </script>
+</body>
+</html>

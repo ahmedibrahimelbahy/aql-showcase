@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AQL — Contact</title>
+  <meta name="description" content="Let's untangle yours. AQL builds the dashboards, CRMs, integrations and automations that make scattered tools run as one." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0B0A08;
+      --bg-elevated: #15130F;
+      --bg-floating: #1F1B14;
+      --border: #2A2620;
+      --border-bright: #3A3527;
+      --cream: #EDE6D3;
+      --cream-dim: #B8B0A0;
+      --muted: #6B6557;
+      --lime: #CCFF33;
+      --lime-dim: #A8D628;
+      --amber: #E97451;
+      --danger: #FF4538;
+    }
+    * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    html, body { background: var(--bg); }
+    body {
+      color: var(--cream);
+      font-family: 'Manrope', sans-serif;
+      overflow-x: hidden;
+    }
+    .font-serif-italic { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; }
+    .font-serif { font-family: 'Instrument Serif', serif; font-weight: 400; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Grain overlay */
+    .grain::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+      opacity: 0.08; mix-blend-mode: overlay; z-index: 100;
+    }
+
+    /* Atmospheric glow for CTA */
+    .cta-glow {
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 70% 55% at 78% 35%, rgba(204, 255, 51, 0.11) 0%, transparent 60%),
+        radial-gradient(ellipse 55% 40% at 12% 70%, rgba(233, 116, 81, 0.075) 0%, transparent 60%),
+        radial-gradient(ellipse 90% 50% at 50% 100%, rgba(237, 230, 211, 0.035) 0%, transparent 60%);
+    }
+
+    /* Faint tech grid */
+    .tech-grid {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(237, 230, 211, 0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(237, 230, 211, 0.022) 1px, transparent 1px);
+      background-size: 80px 80px;
+      mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black, transparent 90%);
+    }
+
+    .tracking-spec { letter-spacing: 0.16em; }
+    .tracking-display { letter-spacing: -0.035em; }
+
+    /* Headline stagger reveal */
+    .reveal-line {
+      display: block; overflow: hidden; padding-bottom: 0.05em;
+    }
+    .reveal-line > .reveal-inner {
+      display: inline-block;
+      transform: translateY(110%);
+      animation: reveal 1.05s cubic-bezier(0.2, 0.85, 0.25, 1) forwards;
+    }
+    .reveal-line.d1 > .reveal-inner { animation-delay: 0.16s; }
+    .reveal-line.d2 > .reveal-inner { animation-delay: 0.30s; }
+    .reveal-line.d3 > .reveal-inner { animation-delay: 0.44s; }
+    @keyframes reveal { to { transform: translateY(0); } }
+
+    .fade-up { opacity: 0; transform: translateY(14px); animation: fadeup 1s cubic-bezier(0.2, 0.8, 0.25, 1) forwards; }
+    .fade-up.d1 { animation-delay: 0.55s; }
+    .fade-up.d2 { animation-delay: 0.70s; }
+    .fade-up.d3 { animation-delay: 0.85s; }
+    .fade-up.d4 { animation-delay: 1.00s; }
+    .fade-up.d5 { animation-delay: 1.20s; }
+    @keyframes fadeup { to { opacity: 1; transform: translateY(0); } }
+
+    /* Map corner brackets */
+    .corner {
+      position: absolute; width: 18px; height: 18px;
+      pointer-events: none;
+    }
+    .corner::before, .corner::after {
+      content: ''; position: absolute; background: var(--cream-dim); opacity: 0.55;
+    }
+    .corner.tl { top: 14px; left: 14px; }
+    .corner.tl::before { top: 0; left: 0; width: 18px; height: 1px; }
+    .corner.tl::after  { top: 0; left: 0; width: 1px; height: 18px; }
+    .corner.tr { top: 14px; right: 14px; }
+    .corner.tr::before { top: 0; right: 0; width: 18px; height: 1px; }
+    .corner.tr::after  { top: 0; right: 0; width: 1px; height: 18px; }
+    .corner.bl { bottom: 14px; left: 14px; }
+    .corner.bl::before { bottom: 0; left: 0; width: 18px; height: 1px; }
+    .corner.bl::after  { bottom: 0; left: 0; width: 1px; height: 18px; }
+    .corner.br { bottom: 14px; right: 14px; }
+    .corner.br::before { bottom: 0; right: 0; width: 18px; height: 1px; }
+    .corner.br::after  { bottom: 0; right: 0; width: 1px; height: 18px; }
+
+    /* Buttons */
+    .btn-primary {
+      position: relative; display: inline-flex; align-items: center; gap: 0.65rem;
+      padding: 0.95rem 1.5rem;
+      background: var(--lime); color: var(--bg);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.74rem; font-weight: 500;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      border-radius: 999px;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.45),
+        inset 0 -1px 0 rgba(0,0,0,0.15),
+        0 8px 28px -8px rgba(204, 255, 51, 0.55),
+        0 2px 6px -2px rgba(0,0,0,0.6);
+      transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.25, 1), box-shadow 0.28s;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.5),
+        inset 0 -1px 0 rgba(0,0,0,0.15),
+        0 14px 36px -8px rgba(204, 255, 51, 0.7),
+        0 4px 12px -2px rgba(0,0,0,0.7);
+    }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:focus-visible { outline: 2px solid var(--lime); outline-offset: 4px; }
+
+    .btn-ghost {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.65rem;
+      padding: 0.95rem 1.25rem;
+      background: transparent; color: var(--cream);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.74rem; font-weight: 400;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      border: 1px solid var(--border-bright);
+      border-radius: 999px;
+      transition: border-color 0.25s, background 0.25s, transform 0.25s cubic-bezier(0.2, 0.8, 0.25, 1);
+    }
+    .btn-ghost:hover { border-color: var(--cream); background: rgba(237, 230, 211, 0.04); transform: translateY(-1px); }
+    .btn-ghost:focus-visible { outline: 2px solid var(--cream); outline-offset: 4px; }
+
+    /* Highlight under "yours." */
+    .lime-underline {
+      background-image: linear-gradient(transparent 72%, rgba(204, 255, 51, 0.58) 72%, rgba(204, 255, 51, 0.58) 88%, transparent 88%);
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      padding: 0 0.06em;
+    }
+
+    /* Status pill */
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      padding: 0.42rem 0.7rem;
+      background: rgba(11, 10, 8, 0.65);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--border-bright);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem; font-weight: 500;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--cream);
+    }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+    /* Lime pulse dot */
+    @keyframes limepulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(204, 255, 51, 0.5), 0 0 6px rgba(204,255,51,0.7); }
+      50%      { box-shadow: 0 0 0 6px rgba(204, 255, 51, 0), 0 0 8px rgba(204,255,51,0.9); }
+    }
+    .lime-pulse {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--lime);
+      animation: limepulse 2.4s ease-in-out infinite;
+    }
+
+    /* Logo dot */
+    @keyframes logobloom {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.04); }
+    }
+    .logo-dot { animation: logobloom 3s ease-in-out infinite; }
+
+    /* Form inputs */
+    .field-label {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+    .field-input, .field-textarea {
+      width: 100%;
+      background: rgba(21, 19, 15, 0.55);
+      border: 1px solid rgba(184, 176, 160, 0.18);
+      color: var(--cream);
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.92rem;
+      font-weight: 400;
+      padding: 0.85rem 0.95rem;
+      border-radius: 6px;
+      outline: none;
+      transition: border-color 0.25s ease, box-shadow 0.3s ease, background 0.25s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .field-input::placeholder, .field-textarea::placeholder {
+      color: var(--muted);
+      font-style: italic;
+    }
+    .field-input:hover, .field-textarea:hover {
+      border-color: rgba(184, 176, 160, 0.32);
+    }
+    .field-input:focus, .field-textarea:focus {
+      border-color: var(--lime);
+      box-shadow: 0 0 0 1px rgba(204, 255, 51, 0.4), 0 0 18px -4px rgba(204, 255, 51, 0.45);
+      background: rgba(21, 19, 15, 0.85);
+    }
+    .field-textarea {
+      resize: none;
+      min-height: 92px;
+      line-height: 1.55;
+    }
+
+    /* Background AQL wordmark */
+    .bg-aql-mark {
+      position: absolute;
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      font-weight: 400;
+      color: var(--cream);
+      opacity: 0.04;
+      letter-spacing: -0.05em;
+      pointer-events: none;
+      user-select: none;
+      line-height: 0.85;
+    }
+
+    /* Email link arrow */
+    .email-link {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--cream);
+      transition: color 0.25s;
+      text-decoration: none;
+    }
+    .email-link .arrow {
+      display: inline-block;
+      transform: translateX(0);
+      transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.25, 1);
+    }
+    .email-link:hover { color: var(--lime); }
+    .email-link:hover .arrow { transform: translateX(4px); }
+
+    /* Footer link rows */
+    .foot-link {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      color: var(--cream-dim);
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.875rem;
+      padding: 0.18rem 0;
+      transition: color 0.2s;
+    }
+    .foot-link::before {
+      content: '';
+      position: absolute;
+      left: -14px;
+      top: 50%;
+      width: 8px;
+      height: 1px;
+      background: var(--lime);
+      transform: translateY(-50%) scaleX(0);
+      transform-origin: right center;
+      transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.25, 1);
+    }
+    .foot-link:hover { color: var(--cream); }
+    .foot-link:hover::before { transform: translateY(-50%) scaleX(1); transform-origin: left center; }
+
+    /* Newsletter inline form */
+    .news-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(184, 176, 160, 0.22);
+      color: var(--cream);
+      font-family: 'Manrope', sans-serif;
+      font-size: 0.85rem;
+      padding: 0.55rem 0.1rem;
+      outline: none;
+      transition: border-color 0.25s;
+    }
+    .news-input::placeholder { color: var(--muted); font-style: italic; }
+    .news-input:focus { border-bottom-color: var(--lime); }
+
+    .news-btn {
+      width: 36px; height: 36px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: transparent;
+      border: 1px solid var(--border-bright);
+      border-radius: 999px;
+      color: var(--lime);
+      font-family: 'JetBrains Mono', monospace;
+      cursor: pointer;
+      transition: border-color 0.25s, background 0.25s, transform 0.25s cubic-bezier(0.2, 0.8, 0.25, 1);
+    }
+    .news-btn:hover { border-color: var(--lime); background: rgba(204, 255, 51, 0.08); transform: translateX(2px); }
+    .news-btn:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
+
+    /* Stenciled AQL background type */
+    .stencil-aql {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      font-weight: 400;
+      letter-spacing: -0.05em;
+      line-height: 0.78;
+      font-size: clamp(8rem, 22vw, 18rem);
+      background: linear-gradient(180deg, rgba(204, 255, 51, 0.95) 0%, rgba(204, 255, 51, 0.25) 70%, transparent 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+      opacity: 0.12;
+      user-select: none;
+      pointer-events: none;
+      text-align: center;
+      white-space: nowrap;
+      display: block;
+      filter: drop-shadow(0 0 60px rgba(204,255,51,0.08));
+    }
+
+    /* Now playing scroll line */
+    @keyframes nowplay {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+    .now-track {
+      display: flex;
+      width: max-content;
+      animation: nowplay 60s linear infinite;
+    }
+
+    /* Form transition (out + confirmation in) */
+    .form-leaving { opacity: 0; transform: translateY(-6px); transition: opacity 0.32s ease, transform 0.32s ease; }
+    .confirm-msg { opacity: 0; transform: translateY(8px); transition: opacity 0.5s ease, transform 0.5s ease; }
+    .confirm-msg.shown { opacity: 1; transform: translateY(0); }
+
+    /* Subtle decoration block */
+    .deco-tick {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--amber);
+      box-shadow: 0 0 8px rgba(233, 116, 81, 0.6);
+    }
+
+    /* iOS Safari dynamic viewport unit fallback */
+    @supports (height: 100dvh) {
+      .min-h-dvh { min-height: 100dvh; }
+    }
+
+    /* Field focus-visible for keyboard a11y on iOS */
+    .field-input:focus-visible, .field-textarea:focus-visible {
+      border-color: var(--lime);
+      box-shadow: 0 0 0 1px rgba(204, 255, 51, 0.4), 0 0 18px -4px rgba(204, 255, 51, 0.45);
+      background: rgba(21, 19, 15, 0.85);
+    }
+
+    /* Tap targets — guarantee >=44pt on mobile */
+    @media (max-width: 640px) {
+      .foot-link {
+        font-size: 0.95rem;
+        padding: 0.55rem 0;
+        min-height: 44px;
+        align-items: center;
+      }
+      .news-btn {
+        width: 44px; height: 44px;
+      }
+      .news-input {
+        font-size: 16px; /* prevent iOS zoom on focus */
+        min-height: 44px;
+      }
+      .field-input, .field-textarea {
+        font-size: 16px; /* prevent iOS zoom on focus */
+      }
+      .field-input { min-height: 48px; }
+      .field-textarea { min-height: 120px; }
+      .btn-primary, .btn-ghost { min-height: 48px; }
+      .email-link { min-height: 44px; }
+    }
+
+    /* Footer ticker contained on mobile */
+    .now-track-wrap {
+      width: 100%;
+      overflow: hidden;
+    }
+
+    /* Mobile-specific overrides */
+    @media (max-width: 767px) {
+      /* Headline: tighter clamp on small screens so it doesn't overflow */
+      .cta-headline {
+        font-size: clamp(2.1rem, 10.2vw, 3.6rem) !important;
+        line-height: 1 !important;
+        letter-spacing: -0.025em;
+        padding-bottom: 0.25rem !important;
+      }
+      /* Decorative giant aql wordmark — keep inside viewport on mobile */
+      .bg-aql-mark-decor {
+        font-size: clamp(16rem, 80vw, 22rem) !important;
+        right: -12vw !important;
+        bottom: -4vw !important;
+        opacity: 0.035 !important;
+      }
+      /* Form name+email row → stack */
+      .form-row { grid-template-columns: 1fr !important; }
+
+      /* Contact card: full bleed inner padding */
+      .contact-card {
+        padding: 1.4rem !important;
+        border-radius: 14px !important;
+      }
+      .cta-col, .cta-col-card { min-width: 0 !important; max-width: 100% !important; }
+      .cta-col-card a, .cta-col-card .email-link { word-break: break-all; overflow-wrap: anywhere; }
+      .contact-card .email-link { font-size: 0.78rem; }
+      .contact-card { overflow: hidden; }
+
+      /* Footer: collapse 5-col to 2-col cleanly, stretch newsletter full width */
+      .footer-grid {
+        gap: 2rem 1.25rem !important;
+      }
+      .footer-newsletter {
+        grid-column: span 2 / span 2 !important;
+      }
+      /* Stenciled aql — smaller, contained */
+      .stencil-aql {
+        font-size: clamp(7rem, 40vw, 12rem) !important;
+      }
+      /* Safe-area padding at the very bottom edge */
+      .bottom-safe { padding-bottom: calc(0.75rem + env(safe-area-inset-bottom)) !important; }
+
+      /* Meta strip: stack on mobile so location row doesn't squeeze */
+      .meta-strip { flex-direction: column; align-items: flex-start !important; gap: 0.75rem !important; }
+
+      /* CTA section paddings — softer on mobile */
+      .cta-padding { padding-top: 4rem !important; padding-bottom: 4rem !important; }
+    }
+  </style>
+</head>
+<body class="grain min-h-screen relative">
+  <div class="tech-grid"></div>
+
+  <!-- ============== CTA BLOCK ============== -->
+  <section id="contact" class="relative overflow-hidden">
+    <div class="cta-glow"></div>
+
+    <!-- huge decorative AQL wordmark -->
+    <div class="bg-aql-mark bg-aql-mark-decor" aria-hidden="true"
+         style="font-size: clamp(28rem, 52vw, 56rem); right: -8vw; bottom: -6vw; transform: rotate(-2deg);">
+      aql
+    </div>
+
+    <!-- corner registration marks -->
+    <span class="corner tl" aria-hidden="true"></span>
+    <span class="corner tr" aria-hidden="true"></span>
+
+    <div class="relative z-10 max-w-[1440px] mx-auto px-6 lg:px-12 pt-24 lg:pt-28 pb-20 lg:pb-24 cta-padding grid grid-cols-12 gap-x-2 gap-y-10 lg:gap-12 items-start">
+
+      <!-- LEFT: Massive headline -->
+      <div class="cta-col col-span-12 lg:col-span-7 flex flex-col gap-7">
+
+        <div class="fade-up flex items-center gap-3 font-mono text-[10.5px] tracking-spec uppercase text-[var(--cream-dim)]">
+          <span class="block w-7 h-px bg-[var(--cream-dim)]"></span>
+          <span>Fig.05 / The Closer</span>
+        </div>
+
+        <h2 class="cta-headline font-serif text-[clamp(4rem,9vw,9rem)] leading-[0.94] tracking-display text-[var(--cream)] pb-3">
+          <span class="reveal-line"><span class="reveal-inner">Whatever shape</span></span>
+          <span class="reveal-line d1"><span class="reveal-inner">your stack takes —</span></span>
+          <span class="reveal-line d2"><span class="reveal-inner">let's <span class="font-serif-italic">untangle</span></span></span>
+          <span class="reveal-line d3"><span class="reveal-inner"><span class="lime-underline font-serif-italic">yours.</span></span></span>
+        </h2>
+
+        <!-- decorative meta row -->
+        <div class="fade-up d3 flex flex-wrap items-center gap-6 mt-2 font-mono text-[10px] tracking-spec uppercase">
+          <span class="flex items-center gap-2 text-[var(--cream-dim)]">
+            <span class="deco-tick"></span>
+            <span>4–6 brands a year</span>
+          </span>
+          <span class="text-[var(--muted)]">·</span>
+          <span class="text-[var(--cream-dim)]">First call &lt; 30 min</span>
+          <span class="text-[var(--muted)]">·</span>
+          <span class="text-[var(--cream-dim)]">Reply within 1 BD</span>
+        </div>
+      </div>
+
+      <!-- RIGHT: Contact card / form -->
+      <div class="cta-col-card col-span-12 lg:col-span-5 fade-up d2">
+        <div class="contact-card relative rounded-[18px] p-7 lg:p-8"
+             style="background: linear-gradient(180deg, rgba(31,27,20,0.55) 0%, rgba(15,13,10,0.55) 100%); border: 1px solid var(--border); box-shadow: 0 30px 60px -30px rgba(0,0,0,0.7), inset 0 1px 0 rgba(237,230,211,0.04); -webkit-backdrop-filter: blur(0px);">
+
+          <!-- corners on the card -->
+          <span class="corner tl" aria-hidden="true"></span>
+          <span class="corner tr" aria-hidden="true"></span>
+          <span class="corner bl" aria-hidden="true"></span>
+          <span class="corner br" aria-hidden="true"></span>
+
+          <!-- kicker -->
+          <div class="flex items-center justify-between mb-5">
+            <div class="font-mono text-[10px] tracking-spec uppercase text-[var(--cream-dim)] flex items-center gap-2">
+              <span class="block w-1.5 h-1.5 bg-[var(--lime)] rounded-full" style="box-shadow: 0 0 8px var(--lime);"></span>
+              <span>FIG.05 / GET IN TOUCH</span>
+            </div>
+            <span class="font-mono text-[9px] tracking-spec uppercase text-[var(--muted)]">v.01</span>
+          </div>
+
+          <!-- intro -->
+          <p class="text-[var(--cream-dim)] text-[0.95rem] leading-[1.65] mb-6">
+            We work with <span class="text-[var(--cream)]">4–6 brands</span> a year. If you're scaling across platforms, ship operationally heavy, and feel the chaos — we'll know within one call whether we're a fit.
+          </p>
+
+          <!-- WhatsApp (primary) + email block -->
+          <div class="space-y-4 mb-7">
+            <a href="https://wa.me/201002311909" target="_blank" rel="noopener" class="flex items-center justify-between gap-4 pb-4 border-b border-[var(--border)] group">
+              <span class="email-link font-mono text-[0.95rem] flex items-center gap-2">
+                <span class="block w-1.5 h-1.5 rounded-full bg-[var(--lime)]" style="box-shadow: 0 0 8px var(--lime);"></span>
+                <span>+20 100 231 1909</span>
+                <span class="arrow text-[var(--lime)]" aria-hidden="true">→</span>
+              </span>
+              <span class="font-mono text-[9px] tracking-spec uppercase text-[var(--lime)] hidden sm:inline">WhatsApp · Primary</span>
+            </a>
+            <a href="mailto:ahmed.ibrahim.elbahy@gmail.com" class="flex items-center justify-between gap-4 pb-4 border-b border-[var(--border)]">
+              <span class="email-link font-mono text-[0.82rem]">
+                <span>ahmed.ibrahim.elbahy@gmail.com</span>
+                <span class="arrow text-[var(--lime)]" aria-hidden="true">→</span>
+              </span>
+              <span class="font-mono text-[9px] tracking-spec uppercase text-[var(--muted)] hidden sm:inline">Email</span>
+            </a>
+
+            <a href="#contact-form" class="btn-primary w-full justify-center" style="display: flex;">
+              <span>Book a 30-min intro</span>
+              <span aria-hidden="true" class="text-base">→</span>
+            </a>
+          </div>
+
+          <!-- divider with label -->
+          <div class="flex items-center gap-3 mb-5">
+            <span class="block flex-1 h-px bg-[var(--border)]"></span>
+            <span class="font-mono text-[9.5px] tracking-spec uppercase text-[var(--muted)]">or write to us</span>
+            <span class="block flex-1 h-px bg-[var(--border)]"></span>
+          </div>
+
+          <!-- Form -->
+          <form id="contact-form" class="space-y-5" novalidate>
+            <div class="form-row grid grid-cols-2 gap-4">
+              <div>
+                <label class="field-label" for="f-name">Name</label>
+                <input class="field-input" type="text" id="f-name" name="name" placeholder="Maison Verde" autocomplete="name" />
+              </div>
+              <div>
+                <label class="field-label" for="f-email">Email</label>
+                <input class="field-input" type="email" id="f-email" name="email" placeholder="ops@brand.com" autocomplete="email" />
+              </div>
+            </div>
+            <div>
+              <label class="field-label" for="f-stack">Tell us about your stack</label>
+              <textarea class="field-textarea" id="f-stack" name="stack" rows="3" placeholder="e.g. Shopify + Bol + Amazon NL/DE, ~€2M GMV, 4-person ops team, finance lives in Excel…"></textarea>
+            </div>
+            <button type="submit" class="btn-ghost w-full" style="display: flex;">
+              <span>Send transmission</span>
+              <span aria-hidden="true">→</span>
+            </button>
+          </form>
+
+          <!-- Confirmation message (hidden by default) -->
+          <div id="contact-confirm" class="hidden confirm-msg pt-2">
+            <div class="flex items-start gap-3 p-5 rounded-[10px]"
+                 style="border: 1px solid rgba(204, 255, 51, 0.35); background: rgba(204, 255, 51, 0.04);">
+              <span class="block w-2 h-2 mt-1.5 rounded-full" style="background: var(--lime); box-shadow: 0 0 12px var(--lime);"></span>
+              <div>
+                <div class="font-mono text-[9.5px] tracking-spec uppercase text-[var(--lime)] mb-2">Transmission received</div>
+                <p class="text-[var(--cream)] text-[0.93rem] leading-[1.55]">
+                  Thanks — we'll respond within <span class="font-serif-italic">1 business day.</span>
+                </p>
+                <p class="text-[var(--muted)] text-[0.78rem] mt-2 font-mono tracking-spec uppercase">REF · <span id="confirm-ref">AQL-—</span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== Metadata strip above footer ============== -->
+    <div class="meta-strip relative z-10 max-w-[1440px] mx-auto px-6 lg:px-12 pt-5 pb-5 flex flex-wrap items-center justify-between gap-4 border-t border-[var(--border)]">
+      <div class="status-pill">
+        <span class="lime-pulse"></span>
+        <span>AVAILABLE Q2 2026</span>
+      </div>
+      <div class="flex items-center gap-3 font-mono text-[10px] tracking-spec uppercase text-[var(--cream-dim)]">
+        <span class="text-[var(--muted)]">◇</span>
+        <span>Based in Amsterdam</span>
+        <span class="text-[var(--muted)]">·</span>
+        <span class="text-[var(--cream-dim)]">52.3676° N, 4.9041° E</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== FOOTER ============== -->
+  <footer class="relative">
+    <div class="footer-grid relative z-10 max-w-[1440px] mx-auto px-6 lg:px-12 pt-12 pb-2 grid grid-cols-2 md:grid-cols-12 gap-y-10 gap-x-8">
+
+      <!-- Col 1: Brand -->
+      <div class="col-span-2 md:col-span-4 flex flex-col gap-4">
+        <a href="/" class="flex items-center gap-2.5 group w-fit">
+          <span class="logo-dot block w-7 h-7 rounded-full relative" style="background: radial-gradient(circle at 32% 28%, #F4FFB0, var(--lime) 38%, var(--lime-dim) 100%); box-shadow: 0 0 18px -2px rgba(204,255,51,0.55);"></span>
+          <span class="font-serif-italic text-[1.55rem] tracking-display text-[var(--cream)] -ml-0.5">aql</span>
+          <span class="hidden sm:inline font-mono text-[10px] tracking-spec uppercase text-[var(--muted)] ml-2 mt-1">/ studio</span>
+        </a>
+        <p class="text-[var(--cream-dim)] text-[0.92rem] leading-[1.65] max-w-[34ch]">
+          Operational infrastructure studio. <span class="text-[var(--cream)]">Whatever your stack looks like, we make it run as one.</span>
+        </p>
+        <p class="font-mono text-[10px] tracking-spec uppercase text-[var(--muted)] mt-1">
+          © 2026 AQL Studio · Amsterdam
+        </p>
+      </div>
+
+      <!-- Col 2: WORK -->
+      <div class="col-span-1 md:col-span-2 flex flex-col gap-3">
+        <h4 class="font-mono text-[10px] tracking-spec uppercase text-[var(--cream)] mb-2">Work</h4>
+        <a href="#" class="foot-link">Dashboards</a>
+        <a href="#" class="foot-link">Integrations</a>
+        <a href="#" class="foot-link">Finance Systems</a>
+        <a href="#" class="foot-link">Email &amp; CRM</a>
+      </div>
+
+      <!-- Col 3: STUDIO -->
+      <div class="col-span-1 md:col-span-2 flex flex-col gap-3">
+        <h4 class="font-mono text-[10px] tracking-spec uppercase text-[var(--cream)] mb-2">Studio</h4>
+        <a href="#" class="foot-link">About</a>
+        <a href="#" class="foot-link">Process</a>
+        <a href="#" class="foot-link">Stack</a>
+        <a href="#" class="foot-link">Careers <sup class="text-[var(--lime)] ml-1 text-[8px] font-mono">2</sup></a>
+      </div>
+
+      <!-- Col 4: ELSEWHERE -->
+      <div class="col-span-1 md:col-span-2 flex flex-col gap-3">
+        <h4 class="font-mono text-[10px] tracking-spec uppercase text-[var(--cream)] mb-2">Elsewhere</h4>
+        <a href="#" class="foot-link">LinkedIn</a>
+        <a href="#" class="foot-link">Twitter / X</a>
+        <a href="#" class="foot-link">GitHub</a>
+        <a href="#" class="foot-link">Read.cv</a>
+      </div>
+
+      <!-- Col 5: NEWSLETTER -->
+      <div class="footer-newsletter col-span-2 md:col-span-2 flex flex-col gap-3">
+        <h4 class="font-mono text-[10px] tracking-spec uppercase text-[var(--cream)] mb-1">Newsletter</h4>
+        <p class="text-[var(--cream-dim)] text-[0.82rem] leading-[1.55] max-w-[28ch]">
+          Quarterly notes from the integration trenches.
+        </p>
+        <form id="news-form" class="flex items-center gap-3 mt-1" novalidate>
+          <input class="news-input" type="email" id="news-email" placeholder="you@brand.com" aria-label="Email address" />
+          <button class="news-btn" type="submit" aria-label="Subscribe">
+            <span aria-hidden="true">→</span>
+          </button>
+        </form>
+        <div id="news-confirm" class="hidden font-mono text-[9.5px] tracking-spec uppercase text-[var(--lime)] mt-1">
+          ✓ Subscribed
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== Stenciled AQL background type ============== -->
+    <div class="relative z-10 max-w-[1440px] mx-auto px-6 lg:px-12 mt-10 overflow-hidden">
+      <div class="border-t border-[var(--border)] pt-8 relative">
+        <span class="stencil-aql block">aql</span>
+      </div>
+    </div>
+
+    <!-- ============== Bottom strip ============== -->
+    <div class="bottom-safe relative z-10 max-w-[1440px] mx-auto px-6 lg:px-12 -mt-6 pb-6">
+      <div class="flex flex-wrap items-center justify-between gap-y-3 gap-x-4 font-mono text-[10px] tracking-spec uppercase text-[var(--muted)]">
+        <div class="flex items-center gap-3 flex-wrap">
+          <a href="#" class="hover:text-[var(--cream-dim)] transition-colors duration-200">Privacy</a>
+          <span>·</span>
+          <a href="#" class="hover:text-[var(--cream-dim)] transition-colors duration-200">Terms</a>
+          <span>·</span>
+          <a href="#" class="hover:text-[var(--cream-dim)] transition-colors duration-200">Imprint</a>
+          <span>·</span>
+          <span>KvK 12345678</span>
+          <span>·</span>
+          <span>BTW NL00.123.456.B01</span>
+        </div>
+        <div class="flex items-center gap-3 text-[var(--cream-dim)]">
+          <span class="block w-1.5 h-1.5 rounded-full" style="background: var(--lime); box-shadow: 0 0 8px var(--lime);"></span>
+          <span>System operational</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== Now playing ticker (very last edge) ============== -->
+    <div class="relative z-10 border-t border-[var(--border)] py-3 overflow-hidden bg-[#08070680]">
+      <div class="now-track">
+        <span id="now-1" class="flex items-center gap-8 px-5 font-mono text-[10px] tracking-spec uppercase text-[var(--cream-dim)] whitespace-nowrap"></span>
+        <span id="now-2" class="flex items-center gap-8 px-5 font-mono text-[10px] tracking-spec uppercase text-[var(--cream-dim)] whitespace-nowrap" aria-hidden="true"></span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+  (() => {
+    // ====== CONTACT FORM ======
+    const form = document.getElementById('contact-form');
+    const confirmEl = document.getElementById('contact-confirm');
+    const refEl = document.getElementById('confirm-ref');
+
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        // generate a tiny pseudo-ref number
+        const ref = 'AQL-' + Math.floor(1000 + Math.random() * 9000);
+        if (refEl) refEl.textContent = ref;
+
+        // animate form out
+        form.classList.add('form-leaving');
+        setTimeout(() => {
+          form.style.display = 'none';
+          confirmEl.classList.remove('hidden');
+          requestAnimationFrame(() => {
+            confirmEl.classList.add('shown');
+          });
+        }, 320);
+      });
+    }
+
+    // ====== NEWSLETTER FORM ======
+    const newsForm = document.getElementById('news-form');
+    const newsConfirm = document.getElementById('news-confirm');
+    const newsInput = document.getElementById('news-email');
+    if (newsForm) {
+      newsForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (newsInput) newsInput.value = '';
+        newsConfirm.classList.remove('hidden');
+      });
+    }
+
+    // ====== NOW-PLAYING TICKER ======
+    const nowItems = [
+      'Currently building → a marketing-finance bridge for Maison Verde',
+      'Real-time GMV ticker · €1,284,402 today',
+      'Latest case study → Bol.com return automation, –41% manual hours',
+      'Studio note → Q2 2026 intake opens in 14 days',
+      'Now reading → "Designing Data-Intensive Applications", ed. 2',
+      'Now syncing → 7 EU markets · 12 platforms · 1 view',
+    ];
+    function buildNow(el) {
+      el.innerHTML = '';
+      nowItems.forEach((t, i) => {
+        const span = document.createElement('span');
+        span.textContent = t;
+        el.appendChild(span);
+        const sep = document.createElement('span');
+        sep.textContent = i % 2 === 0 ? '◇' : '·';
+        sep.style.color = i % 2 === 0 ? 'var(--lime)' : 'var(--muted)';
+        el.appendChild(sep);
+      });
+    }
+    buildNow(document.getElementById('now-1'));
+    buildNow(document.getElementById('now-2'));
+  })();
+  </script>
+</body>
+</html>

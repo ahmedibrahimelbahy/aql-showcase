@@ -1,0 +1,14 @@
+{
+  "name": "aql-showcase",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AQL — operational infrastructure studio. Dashboards, CRMs, integrations and automations that make scattered tools run as one.",
+  "scripts": {
+    "serve": "node serve.mjs",
+    "shot": "node screenshot.mjs"
+  },
+  "dependencies": {
+    "puppeteer": "^23.0.0"
+  }
+}

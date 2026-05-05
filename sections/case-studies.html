@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AQL — Selected Work · Case Studies</title>
+  <meta name="description" content="From tabs and tabs to one lit screen. Selected AQL engagements: each one started in chaos and ended in operational calm." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0B0A08;
+      --bg-elevated: #15130F;
+      --bg-floating: #1F1B14;
+      --border: #2A2620;
+      --border-bright: #3A3527;
+      --cream: #EDE6D3;
+      --cream-dim: #B8B0A0;
+      --muted: #6B6557;
+      --lime: #CCFF33;
+      --lime-dim: #A8D628;
+      --amber: #E97451;
+      --danger: #FF4538;
+    }
+    * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    html, body { background: var(--bg); }
+    body {
+      color: var(--cream);
+      font-family: 'Manrope', sans-serif;
+      overflow-x: hidden;
+    }
+    .font-serif-italic { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; }
+    .font-serif { font-family: 'Instrument Serif', serif; font-weight: 400; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Grain overlay */
+    .grain::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+      opacity: 0.08; mix-blend-mode: overlay; z-index: 100;
+    }
+
+    /* Faint tech grid */
+    .tech-grid {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(237, 230, 211, 0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(237, 230, 211, 0.022) 1px, transparent 1px);
+      background-size: 80px 80px;
+      mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, black, transparent 90%);
+    }
+
+    /* Section glow */
+    .section-glow {
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 60% 35% at 75% 12%, rgba(204, 255, 51, 0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 8% 90%, rgba(233, 116, 81, 0.05) 0%, transparent 60%);
+    }
+
+    .tracking-spec { letter-spacing: 0.16em; }
+    .tracking-display { letter-spacing: -0.035em; }
+
+    /* Highlight under italic phrase */
+    .lime-underline {
+      background-image: linear-gradient(transparent 76%, rgba(204, 255, 51, 0.55) 76%, rgba(204, 255, 51, 0.55) 92%, transparent 92%);
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      padding: 0 0.04em;
+    }
+
+    /* Corner registration marks */
+    .corner {
+      position: absolute; width: 16px; height: 16px;
+      pointer-events: none;
+    }
+    .corner::before, .corner::after {
+      content: ''; position: absolute; background: var(--cream-dim); opacity: 0.5;
+    }
+    .corner.tl { top: 14px; left: 14px; }
+    .corner.tl::before { top: 0; left: 0; width: 16px; height: 1px; }
+    .corner.tl::after  { top: 0; left: 0; width: 1px; height: 16px; }
+    .corner.tr { top: 14px; right: 14px; }
+    .corner.tr::before { top: 0; right: 0; width: 16px; height: 1px; }
+    .corner.tr::after  { top: 0; right: 0; width: 1px; height: 16px; }
+    .corner.bl { bottom: 14px; left: 14px; }
+    .corner.bl::before { bottom: 0; left: 0; width: 16px; height: 1px; }
+    .corner.bl::after  { bottom: 0; left: 0; width: 1px; height: 16px; }
+    .corner.br { bottom: 14px; right: 14px; }
+    .corner.br::before { bottom: 0; right: 0; width: 16px; height: 1px; }
+    .corner.br::after  { bottom: 0; right: 0; width: 1px; height: 16px; }
+
+    /* Case card frame */
+    .case-card {
+      position: relative;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow:
+        0 1px 0 rgba(237, 230, 211, 0.04) inset,
+        0 30px 60px -30px rgba(0, 0, 0, 0.7),
+        0 8px 24px -12px rgba(204, 255, 51, 0.04);
+      overflow: hidden;
+    }
+
+    /* Platform pill */
+    .platform-pill {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.32rem 0.65rem;
+      background: rgba(31, 27, 20, 0.7);
+      border: 1px solid var(--border-bright);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem; font-weight: 500;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--cream-dim);
+    }
+    .platform-pill .dot {
+      width: 5px; height: 5px; border-radius: 50%; background: var(--cream-dim);
+    }
+    .platform-pill.shopify .dot { background: #95BF47; }
+    .platform-pill.bol     .dot { background: #0000A4; box-shadow: 0 0 0 1px #4A4A99; }
+    .platform-pill.amazon  .dot { background: #FF9900; }
+    .platform-pill.temu    .dot { background: #FB7701; }
+    .platform-pill.noon    .dot { background: #FEEE00; }
+    .platform-pill.klaviyo .dot { background: var(--amber); }
+    .platform-pill.stripe  .dot { background: #635BFF; }
+    .platform-pill.warehouse .dot { background: var(--lime); }
+
+    /* Metric pill */
+    .metric-pill {
+      display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+      padding: 0.95rem 1.1rem;
+      background: rgba(11, 10, 8, 0.55);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      position: relative;
+    }
+    .metric-pill::before {
+      content: ''; position: absolute; left: 0; top: 14px; bottom: 14px; width: 2px;
+      background: var(--lime); opacity: 0.55;
+      border-radius: 0 2px 2px 0;
+    }
+    .metric-pill .m-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem; font-weight: 400;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+    .metric-pill .m-value {
+      font-family: 'Instrument Serif', serif;
+      font-size: 1.1rem;
+      color: var(--cream);
+      text-align: right;
+      line-height: 1.15;
+    }
+    .metric-pill .m-value em {
+      font-style: italic;
+      color: var(--lime);
+    }
+    .metric-pill .m-value .arrow {
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      margin: 0 0.4em;
+      vertical-align: 1px;
+    }
+
+    /* Case kicker labels */
+    .case-kicker {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.66rem; font-weight: 500;
+      letter-spacing: 0.18em; text-transform: uppercase;
+    }
+
+    /* Slider */
+    .slider-frame {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      width: 100%;
+      border-radius: 14px;
+      overflow: hidden;
+      background: var(--bg-floating);
+      border: 1px solid var(--border-bright);
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+      cursor: ew-resize;
+      box-shadow: 0 10px 30px -12px rgba(0,0,0,0.6) inset;
+    }
+    .slider-img-wrap {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+    }
+    .slider-img-wrap img {
+      width: 100%; height: 100%; object-fit: cover;
+      display: block;
+      pointer-events: none;
+    }
+    .slider-img-wrap svg {
+      width: 100%; height: 100%; display: block;
+    }
+    .slider-after {
+      position: absolute; inset: 0;
+      clip-path: inset(0 0 0 50%);
+      will-change: clip-path;
+    }
+    /* Mock dashboard styles inside SVG */
+    .mock-bg-before { fill: #1F1B14; }
+    .mock-bg-after  { fill: #0B0A08; }
+    .mock-row-before { fill: #2A2620; }
+    .mock-row-after  { fill: #15130F; }
+    .mock-text-before { fill: #6B6557; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; }
+    .mock-text-after  { fill: #B8B0A0; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; }
+    .mock-num-before { fill: #8A8578; font-family: 'Instrument Serif', serif; font-size: 22px; }
+    .mock-num-after  { fill: #EDE6D3; font-family: 'Instrument Serif', serif; font-size: 22px; }
+    .mock-accent-after { fill: #CCFF33; }
+    .mock-accent-before { fill: #E97451; opacity: 0.7; }
+    .slider-handle {
+      position: absolute; top: 0; bottom: 0;
+      left: 50%;
+      width: 2px;
+      background: var(--cream);
+      transform: translateX(-50%);
+      pointer-events: none;
+      box-shadow: 0 0 0 1px rgba(11, 10, 8, 0.55), 0 0 20px rgba(237, 230, 211, 0.25);
+      will-change: left;
+    }
+    .slider-knob {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 1px solid var(--cream);
+      display: flex; align-items: center; justify-content: center;
+      gap: 4px;
+      box-shadow:
+        0 0 0 4px rgba(11, 10, 8, 0.65),
+        0 0 22px rgba(204, 255, 51, 0.18),
+        0 8px 18px -4px rgba(0,0,0,0.7);
+      transition: transform 0.4s cubic-bezier(0.2, 0.85, 0.25, 1), box-shadow 0.3s;
+      pointer-events: auto;
+      touch-action: none;
+    }
+    /* Invisible expanded touch hit-area (≥44×44pt for iOS) */
+    .slider-knob::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 56px; height: 56px;
+      border-radius: 50%;
+    }
+    .slider-frame:hover .slider-knob { transform: translate(-50%, -50%) scale(1.06); box-shadow: 0 0 0 4px rgba(11, 10, 8, 0.65), 0 0 28px rgba(204, 255, 51, 0.32), 0 8px 22px -4px rgba(0,0,0,0.8); }
+    .slider-knob.dragging { transform: translate(-50%, -50%) scale(1.12); }
+    .slider-knob span {
+      display: block; width: 2px; height: 12px;
+      background: var(--cream); border-radius: 1px;
+      pointer-events: none;
+    }
+    .slider-knob span:first-child { background: var(--amber); }
+    .slider-knob span:last-child { background: var(--lime); }
+
+    .slider-tag {
+      position: absolute; top: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem; font-weight: 500;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      padding: 0.32rem 0.55rem;
+      background: rgba(11, 10, 8, 0.7);
+      border: 1px solid var(--border-bright);
+      border-radius: 999px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 5;
+    }
+    .slider-tag.before { left: 12px; color: var(--amber); border-color: rgba(233, 116, 81, 0.35); }
+    .slider-tag.after  { right: 12px; color: var(--lime); border-color: rgba(204, 255, 51, 0.35); }
+
+    /* Fade up reveal */
+    .fade-up { opacity: 0; transform: translateY(18px); animation: fadeup 1s cubic-bezier(0.2, 0.8, 0.25, 1) forwards; }
+    .fade-up.d1 { animation-delay: 0.15s; }
+    .fade-up.d2 { animation-delay: 0.3s; }
+    .fade-up.d3 { animation-delay: 0.45s; }
+    .fade-up.d4 { animation-delay: 0.6s; }
+    .fade-up.d5 { animation-delay: 0.75s; }
+    .fade-up.d6 { animation-delay: 0.9s; }
+    .fade-up.d7 { animation-delay: 1.05s; }
+    @keyframes fadeup { to { opacity: 1; transform: translateY(0); } }
+
+    .reveal-line {
+      display: block; overflow: hidden; padding-bottom: 0.05em;
+    }
+    .reveal-line > .reveal-inner {
+      display: inline-block;
+      transform: translateY(110%);
+      animation: reveal 1.05s cubic-bezier(0.2, 0.85, 0.25, 1) forwards;
+    }
+    .reveal-line.d1 > .reveal-inner { animation-delay: 0.18s; }
+    .reveal-line.d2 > .reveal-inner { animation-delay: 0.34s; }
+    @keyframes reveal { to { transform: translateY(0); } }
+
+    /* CTA continue link mimic */
+    .continue-link {
+      display: inline-flex; align-items: center; gap: 0.85rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--cream);
+    }
+    .continue-link .dash {
+      display: block; width: 2.5rem; height: 1px;
+      background: var(--cream);
+      transform-origin: left;
+      transition: width 0.35s cubic-bezier(0.2, 0.85, 0.25, 1);
+    }
+    .continue-link:hover .dash { width: 4rem; }
+    .continue-link .arr { color: var(--lime); transition: transform 0.35s cubic-bezier(0.2, 0.85, 0.25, 1); }
+    .continue-link:hover .arr { transform: translateX(4px); }
+
+    /* Card index marker */
+    .card-index {
+      position: absolute; top: 0; left: 0;
+      width: 2px; height: 60px;
+      background: linear-gradient(180deg, var(--lime), transparent);
+      opacity: 0.6;
+    }
+
+    /* iOS dynamic viewport */
+    @supports (height: 100dvh) {
+      body { min-height: 100dvh; }
+    }
+
+    /* Very narrow (iPhone SE / 320px) */
+    @media (max-width: 380px) {
+      /* Smaller card kickers + tighter tracking */
+      .case-card .case-kicker { font-size: 0.54rem; letter-spacing: 0.12em; }
+      .tracking-spec { letter-spacing: 0.12em; }
+      /* Tighter inner gaps in card top strip */
+      .case-card .flex.items-center.gap-4 { gap: 0.6rem; }
+      /* Section-level mono line: shrink so "04 Engagements" doesn't clip */
+      #case-studies > div > .grid .font-mono.tracking-spec { font-size: 9px; }
+    }
+
+    /* Mobile tuning (≤640px) */
+    @media (max-width: 640px) {
+      /* Tighter outer rhythm */
+      .case-card { border-radius: 18px; }
+      /* Reduce inner card padding so the slider gets more breathing room at 393px */
+      .case-card .p-7 { padding: 1.25rem; }
+      /* Top strip — keep it readable, allow wrap */
+      .case-kicker { font-size: 0.6rem; letter-spacing: 0.14em; }
+      /* Headlines on cards a touch tighter */
+      .case-card h3 { margin-bottom: 1.25rem; }
+      /* Section header: keep italic-serif on its own line */
+      h2 .reveal-line { white-space: normal; }
+      /* Metric pills slightly tighter */
+      .metric-pill { padding: 0.8rem 0.9rem; }
+      .metric-pill .m-value { font-size: 1rem; }
+      /* Tag pills wrap cleanly */
+      .platform-pill { font-size: 0.58rem; padding: 0.3rem 0.55rem; }
+      /* Slider tags shrink a bit */
+      .slider-tag { font-size: 0.55rem; padding: 0.28rem 0.5rem; top: 8px; }
+      .slider-tag.before { left: 8px; }
+      .slider-tag.after  { right: 8px; }
+      /* Knob easier to grab */
+      .slider-knob { width: 44px; height: 44px; }
+    }
+  </style>
+</head>
+<body class="grain min-h-screen relative">
+  <div class="tech-grid"></div>
+
+  <section class="relative" id="case-studies">
+    <div class="section-glow"></div>
+
+    <div class="relative z-10 max-w-[1440px] mx-auto px-6 lg:px-12 pt-24 pb-12">
+
+      <!-- Section header -->
+      <div class="grid grid-cols-12 gap-x-0 gap-y-8 lg:gap-10 items-end mb-14">
+        <div class="col-span-12 lg:col-span-7">
+          <div class="fade-up flex items-center gap-3 font-mono text-[10.5px] tracking-spec uppercase text-[var(--cream-dim)] mb-6 flex-wrap">
+            <span class="block w-7 h-px bg-[var(--cream-dim)]"></span>
+            <span>Fig.03 / Selected Work</span>
+            <span class="text-[var(--muted)]">·</span>
+            <span class="text-[var(--muted)]">04 Engagements</span>
+          </div>
+          <h2 class="font-serif text-[clamp(2.2rem,4.6vw,4.1rem)] leading-[0.98] tracking-display text-[var(--cream)]">
+            <span class="reveal-line"><span class="reveal-inner">From <span class="font-serif-italic">tabs and tabs</span></span></span>
+            <span class="reveal-line d1"><span class="reveal-inner">to <span class="font-serif-italic"><span class="lime-underline">one lit</span> screen.</span></span></span>
+          </h2>
+        </div>
+        <div class="col-span-12 lg:col-span-5">
+          <p class="fade-up d2 text-[var(--cream-dim)] text-[1.02rem] leading-[1.7] max-w-[42ch] lg:ml-auto">
+            Each engagement starts the same way — five tabs, three spreadsheets, one finance call no one wants to take. It ends in a single, operable view.
+            <span class="text-[var(--cream)]">Drag any frame to compare</span>.
+          </p>
+        </div>
+      </div>
+
+      <!-- Case studies stack -->
+      <div class="space-y-8">
+
+        <!-- ============== CASE 01 — House of Aurelia ============== -->
+        <article class="case-card fade-up d2" data-case>
+          <span class="corner tl" aria-hidden="true"></span>
+          <span class="corner tr" aria-hidden="true"></span>
+          <span class="corner bl" aria-hidden="true"></span>
+          <span class="corner br" aria-hidden="true"></span>
+          <span class="card-index" aria-hidden="true"></span>
+
+          <div class="p-7 lg:p-9">
+            <!-- Top strip -->
+            <div class="flex items-center justify-between flex-wrap gap-3 mb-6">
+              <div class="flex items-center gap-4">
+                <span class="case-kicker text-[var(--lime)]">CASE 01 — 2024 Q3</span>
+                <span class="block w-6 h-px bg-[var(--border-bright)]"></span>
+                <span class="case-kicker text-[var(--cream-dim)]">House of Aurelia</span>
+              </div>
+              <span class="case-kicker text-[var(--muted)]">NL · DE · FR</span>
+            </div>
+
+            <!-- Headline -->
+            <h3 class="font-serif text-[clamp(1.6rem,2.6vw,2.3rem)] leading-[1.05] tracking-display text-[var(--cream)] mb-7 max-w-[26ch]">
+              Three marketplaces, <span class="font-serif-italic text-[var(--cream)]">one orders feed</span>.
+            </h3>
+
+            <!-- Slider -->
+            <div class="slider-frame mb-7" data-slider>
+              <span class="slider-tag before">Before</span>
+              <span class="slider-tag after">After</span>
+              <div class="slider-img-wrap">
+                <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                  <rect class="mock-bg-before" width="1600" height="900"/>
+                  <!-- Header bar -->
+                  <rect x="0" y="0" width="1600" height="60" fill="#15130F"/>
+                  <text x="40" y="38" class="mock-text-before">Orders.xlsx — Sheet 03 (Bol)</text>
+                  <text x="1480" y="38" class="mock-text-before" text-anchor="end">v.27 · 06:12</text>
+                  <!-- Tabs -->
+                  <rect x="40" y="90" width="180" height="34" fill="#2A2620"/>
+                  <text x="60" y="113" class="mock-text-before">Shopify NL</text>
+                  <rect x="230" y="90" width="180" height="34" fill="#15130F"/>
+                  <text x="250" y="113" class="mock-text-before" style="opacity:0.6">Shopify DE</text>
+                  <rect x="420" y="90" width="180" height="34" fill="#15130F"/>
+                  <text x="440" y="113" class="mock-text-before" style="opacity:0.6">Bol Orders</text>
+                  <rect x="610" y="90" width="180" height="34" fill="#15130F"/>
+                  <text x="630" y="113" class="mock-text-before" style="opacity:0.6">Amazon DE</text>
+                  <rect x="800" y="90" width="180" height="34" fill="#15130F"/>
+                  <text x="820" y="113" class="mock-text-before" style="opacity:0.6">VAT calc</text>
+                  <!-- Spreadsheet rows -->
+                  <g>
+                    <rect x="40" y="160" width="1520" height="40" class="mock-row-before"/>
+                    <text x="60" y="186" class="mock-text-before">#48217  ·  Shopify NL  ·  €128,40</text>
+                    <text x="1480" y="186" class="mock-text-before" text-anchor="end">PENDING</text>
+                    <rect x="40" y="210" width="1520" height="40" fill="#15130F"/>
+                    <text x="60" y="236" class="mock-text-before">#48218  ·  Bol  ·  €0?? mismatch</text>
+                    <rect x="1380" y="218" width="100" height="22" class="mock-accent-before"/>
+                    <text x="1430" y="234" class="mock-text-before" text-anchor="middle" style="fill:#1F1B14">ERROR</text>
+                    <rect x="40" y="260" width="1520" height="40" class="mock-row-before"/>
+                    <text x="60" y="286" class="mock-text-before">#48219  ·  Amazon DE  ·  €74,20</text>
+                    <text x="1480" y="286" class="mock-text-before" text-anchor="end">PENDING</text>
+                    <rect x="40" y="310" width="1520" height="40" fill="#15130F"/>
+                    <text x="60" y="336" class="mock-text-before">#48220  ·  Shopify FR  ·  duplicate?</text>
+                    <rect x="1380" y="318" width="100" height="22" class="mock-accent-before"/>
+                    <text x="1430" y="334" class="mock-text-before" text-anchor="middle" style="fill:#1F1B14">ERROR</text>
+                    <rect x="40" y="360" width="1520" height="40" class="mock-row-before"/>
+                    <text x="60" y="386" class="mock-text-before">#48221  ·  Bol  ·  €213,75</text>
+                    <text x="1480" y="386" class="mock-text-before" text-anchor="end">PENDING</text>
+                    <rect x="40" y="410" width="1520" height="40" fill="#15130F"/>
+                    <text x="60" y="436" class="mock-text-before">#48222  ·  Amazon NL  ·  refund?</text>
+                    <rect x="40" y="460" width="1520" height="40" class="mock-row-before"/>
+                    <text x="60" y="486" class="mock-text-before">#48223  ·  Shopify NL  ·  €91,00</text>
+                  </g>
+                  <!-- Bottom -->
+                  <text x="40" y="780" class="mock-num-before">€48,213</text>
+                  <text x="40" y="810" class="mock-text-before">Reconciled?  · partial</text>
+                  <text x="1480" y="810" class="mock-text-before" text-anchor="end">06h 11m elapsed</text>
+                </svg>
+              </div>
+              <div class="slider-img-wrap slider-after" data-after>
+                <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <radialGradient id="glow1" cx="78%" cy="22%" r="55%">
+                      <stop offset="0%" stop-color="#CCFF33" stop-opacity="0.10"/>
+                      <stop offset="100%" stop-color="#CCFF33" stop-opacity="0"/>
+                    </radialGradient>
+                  </defs>
+                  <rect class="mock-bg-after" width="1600" height="900"/>
+                  <rect width="1600" height="900" fill="url(#glow1)"/>
+                  <!-- Header bar -->
+                  <rect x="0" y="0" width="1600" height="60" fill="#15130F"/>
+                  <circle cx="40" cy="30" r="6" class="mock-accent-after"/>
+                  <text x="60" y="38" class="mock-text-after">aql / orders · unified feed</text>
+                  <text x="1480" y="38" class="mock-text-after" text-anchor="end">live · 04s lag</text>
+                  <!-- KPI strip -->
+                  <g>
+                    <rect x="40" y="90" width="360" height="120" rx="10" fill="#15130F" stroke="#2A2620"/>
+                    <text x="60" y="120" class="mock-text-after" style="fill:#6B6557">All channels · today</text>
+                    <text x="60" y="170" class="mock-num-after" style="font-size:42px">€18,742</text>
+                    <text x="60" y="195" class="mock-text-after" style="fill:#CCFF33">+12.4% vs yesterday</text>
+                    <rect x="420" y="90" width="280" height="120" rx="10" fill="#15130F" stroke="#2A2620"/>
+                    <text x="440" y="120" class="mock-text-after" style="fill:#6B6557">Open orders</text>
+                    <text x="440" y="170" class="mock-num-after" style="font-size:42px">412</text>
+                    <rect x="720" y="90" width="280" height="120" rx="10" fill="#15130F" stroke="#2A2620"/>
+                    <text x="740" y="120" class="mock-text-after" style="fill:#6B6557">VAT due NL</text>
+                    <text x="740" y="170" class="mock-num-after" style="font-size:42px">€2,184</text>
+                    <rect x="1020" y="90" width="540" height="120" rx="10" fill="#15130F" stroke="#2A2620"/>
+                    <text x="1040" y="120" class="mock-text-after" style="fill:#6B6557">Channel mix</text>
+                    <rect x="1040" y="140" width="200" height="22" class="mock-accent-after"/>
+                    <rect x="1240" y="140" width="160" height="22" fill="#E97451"/>
+                    <rect x="1400" y="140" width="100" height="22" fill="#EDE6D3" opacity="0.4"/>
+                    <text x="1040" y="186" class="mock-text-after" style="font-size:9px">SHOPIFY  ·  BOL  ·  AMAZON</text>
+                  </g>
+                  <!-- Live order stream -->
+                  <g>
+                    <text x="40" y="260" class="mock-text-after" style="fill:#CCFF33">live order stream</text>
+                    <line x1="40" y1="275" x2="1560" y2="275" stroke="#2A2620"/>
+                    <rect x="40" y="290" width="1520" height="44" rx="6" fill="#15130F"/>
+                    <circle cx="60" cy="312" r="4" class="mock-accent-after"/>
+                    <text x="80" y="318" class="mock-text-after">#48224 · shopify · €128,40 · NL</text>
+                    <text x="1480" y="318" class="mock-text-after" text-anchor="end" style="fill:#CCFF33">SYNCED</text>
+                    <rect x="40" y="344" width="1520" height="44" rx="6" fill="#15130F"/>
+                    <circle cx="60" cy="366" r="4" class="mock-accent-after"/>
+                    <text x="80" y="372" class="mock-text-after">#48225 · bol · €74,20 · NL</text>
+                    <text x="1480" y="372" class="mock-text-after" text-anchor="end" style="fill:#CCFF33">SYNCED</text>
+                    <rect x="40" y="398" width="1520" height="44" rx="6" fill="#15130F"/>
+                    <circle cx="60" cy="420" r="4" class="mock-accent-after"/>
+                    <text x="80" y="426" class="mock-text-after">#48226 · amazon · €213,75 · DE</text>
+                    <text x="1480" y="426" class="mock-text-after" text-anchor="end" style="fill:#CCFF33">SYNCED</text>
+                    <rect x="40" y="452" width="1520" height="44" rx="6" fill="#15130F"/>
+                    <circle cx="60" cy="474" r="4" class="mock-accent-after"/>
+                    <text x="80" y="480" class="mock-text-after">#48227 · shopify · €91,00 · FR</text>
+                    <text x="1480" y="480" class="mock-text-after" text-anchor="end" style="fill:#CCFF33">SYNCED</text>
+                  </g>
+                  <!-- Sparkline -->
+                  <g transform="translate(40, 560)">
+                    <text x="0" y="0" class="mock-text-after" style="fill:#6B6557">revenue · last 24h</text>
+                    <polyline points="0,140 80,120 160,130 240,90 320,100 400,70 480,82 560,55 640,68 720,42 800,52 880,30 960,44 1040,22 1120,36 1200,18 1280,28 1360,12 1440,22 1520,8" fill="none" stroke="#CCFF33" stroke-width="2"/>
+                    <line x1="0" y1="180" x2="1520" y2="180" stroke="#2A2620" stroke-dasharray="2 4"/>
+                    <text x="0" y="210" class="mock-text-after" style="font-size:9px">00:00</text>
+                    <text x="1520" y="210" class="mock-text-after" text-anchor="end" style="font-size:9px">23:59</text>
+                  </g>
+                  <!-- Footer -->
+                  <text x="40" y="850" class="mock-text-after" style="fill:#6B6557">recon · 11min · 1 source · 0 errors</text>
+                  <text x="1480" y="850" class="mock-text-after" text-anchor="end" style="fill:#CCFF33">● synced</text>
+                </svg>
+              </div>
+              <div class="slider-handle" data-handle>
+                <div class="slider-knob" data-knob><span></span><span></span></div>
+              </div>
+            </div>
+
+            <!-- Two-column body -->
+            <div class="grid grid-cols-12 gap-6 lg:gap-10">
+              <div class="col-span-12 lg:col-span-7">
+                <p class="text-[var(--cream-dim)] text-[0.97rem] leading-[1.7] max-w-[55ch] mb-5">
+                  Six staff members reconciling Shopify, Bol and Amazon orders by hand each Monday — three currencies, three tax regimes, one shared spreadsheet that crashed at 600 rows. We built a single normalized orders feed: every channel writes to the same shape, the same timezone, the same VAT logic.
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <span class="platform-pill shopify"><span class="dot"></span>Shopify</span>
+                  <span class="platform-pill bol"><span class="dot"></span>Bol.com</span>
+                  <span class="platform-pill amazon"><span class="dot"></span>Amazon EU</span>
+                  <span class="platform-pill stripe"><span class="dot"></span>Stripe</span>
+                </div>
+              </div>
+              <div class="col-span-12 lg:col-span-5 flex flex-col gap-2.5">
+                <div class="metric-pill">
+                  <span class="m-label">SKUs synced live</span>
+                  <span class="m-value">12,400</span>
+                </div>
+                <div class="metric-pill">
+                  <span class="m-label">Reconciliation</span>
+                  <span class="m-value">6h<span class="arrow">→</span><em>11min</em></span>
+                </div>
+                <div class="metric-pill">
+                  <span class="m-label">Margin visibility</span>
+                  <span class="m-value">monthly<span class="arrow">→</span><em>real-time</em></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ============== CASE 02 — Maison Verde ============== -->
+        <article class="case-card fade-up d3" data-case>
+          <span class="corner tl" aria-hidden="true"></span>
+          <span class="corner tr" aria-hidden="true"></span>
+          <span class="corner bl" aria-hidden="true"></span>
+          <span class="corner br" aria-hidden="true"></span>
+          <span class="card-index" aria-hidden="true"></span>
+
+          <div class="p-7 lg:p-9">
+            <div class="flex items-center justify-between flex-wrap gap-3 mb-6">
+              <div class="flex items-center gap-4">
+                <span class="case-kicker text-[var(--lime)]">CASE 02 — 2024 Q4</span>
+                <span class="block w-6 h-px bg-[var(--border-bright)]"></span>
+                <span class="case-kicker text-[var(--cream-dim)]">Maison Verde</span>
+              </div>
+              <span class="case-kicker text-[var(--muted)]">4 Warehouses · 1 View</span>
+            </div>
+
+            <h3 class="font-serif text-[clamp(1.6rem,2.6vw,2.3rem)] leading-[1.05] tracking-display text-[var(--cream)] mb-7 max-w-[28ch]">
+              Four warehouses agreeing, <span class="font-serif-italic text-[var(--cream)]">in real time</span>.
+            </h3>
+
+            <div class="slider-frame mb-7" data-slider>
+              <span class="slider-tag before">Before</span>
+              <span class="slider-tag after">After</span>
+              <div class="slider-img-wrap" data-mock="inventory-before"></div>
+              <div class="slider-img-wrap slider-after" data-after data-mock="inventory-after"></div>
+              <div class="slider-handle" data-handle>
+                <div class="slider-knob" data-knob><span></span><span></span></div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-12 gap-6 lg:gap-10">
+              <div class="col-span-12 lg:col-span-7">
+                <p class="text-[var(--cream-dim)] text-[0.97rem] leading-[1.7] max-w-[55ch] mb-5">
+                  A premium homeware brand was oversells-by-design — four warehouses, three channels, hourly CSV exports, and a customer-service team apologizing for the difference. We pushed every stock movement onto a single event bus; the storefront now reads from one number, every channel respects holds, and the apology emails stopped.
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <span class="platform-pill shopify"><span class="dot"></span>Shopify Plus</span>
+                  <span class="platform-pill amazon"><span class="dot"></span>Amazon FBA</span>
+                  <span class="platform-pill warehouse"><span class="dot"></span>Linnworks</span>
+                  <span class="platform-pill warehouse"><span class="dot"></span>3PL · NL</span>
+                </div>
+              </div>
+              <div class="col-span-12 lg:col-span-5 flex flex-col gap-2.5">
+                <div class="metric-pill">
+                  <span class="m-label">Oversells / month</span>
+                  <span class="m-value">187<span class="arrow">→</span><em>0</em></span>
+                </div>
+                <div class="metric-pill">
+                  <span class="m-label">Stock sync latency</span>
+                  <span class="m-value">60min<span class="arrow">→</span><em>4s</em></span>
+                </div>
+                <div class="metric-pill">
+                  <span class="m-label">Refund-rate impact</span>
+                  <span class="m-value">−<em>38%</em></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ============== CASE 03 — Northstar Coffee Co. ============== -->
+        <article class="case-card fade-up d4" data-case>
+          <span class="corner tl" aria-hidden="true"></span>
+          <span class="corner tr" aria-hidden="true"></span>
+          <span class="corner bl" aria-hidden="true"></span>
+          <span class="corner br" aria-hidden="true"></span>
+          <span class="card-index" aria-hidden="true"></span>
+
+          <div class="p-7 lg:p-9">
+            <div class="flex items-center justify-between flex-wrap gap-3 mb-6">
+              <div class="flex items-center gap-4">
+                <span class="case-kicker text-[var(--lime)]">CASE 03 — 2025 Q1</span>
+                <span class="block w-6 h-px bg-[var(--border-bright)]"></span>
+                <span class="case-kicker text-[var(--cream-dim)]">Northstar Coffee Co.</span>
+              </div>
+              <span class="case-kicker text-[var(--muted)]">DTC + Subscription</span>
+            </div>
+
+            <h3 class="font-serif text-[clamp(1.6rem,2.6vw,2.3rem)] leading-[1.05] tracking-display text-[var(--cream)] mb-7 max-w-[30ch]">
+              Margin per channel, <span class="font-serif-italic text-[var(--cream)]">finally legible</span>.
+            </h3>
+
+            <div class="slider-frame mb-7" data-slider>
+              <span class="slider-tag before">Before</span>
+              <span class="slider-tag after">After</span>
+              <div class="slider-img-wrap" data-mock="finance-before"></div>
+              <div class="slider-img-wrap slider-after" data-after data-mock="finance-after"></div>
+              <div class="slider-handle" data-handle>
+                <div class="slider-knob" data-knob><span></span><span></span></div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-12 gap-6 lg:gap-10">
+              <div class="col-span-12 lg:col-span-7">
+                <p class="text-[var(--cream-dim)] text-[0.97rem] leading-[1.7] max-w-[55ch] mb-5">
+                  Subscription was supposed to be the profitable channel — turns out it was the second-most expensive once retention churn and replacement bag costs landed. We rebuilt their finance dashboard with COGS, ad-spend and 3PL costs allocated per order, per channel, weekly. The founder runs Monday from one screen now.
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <span class="platform-pill shopify"><span class="dot"></span>Shopify</span>
+                  <span class="platform-pill warehouse"><span class="dot"></span>Recharge</span>
+                  <span class="platform-pill stripe"><span class="dot"></span>Stripe</span>
+                  <span class="platform-pill warehouse"><span class="dot"></span>Exact</span>
+                </div>
+              </div>
+              <div class="col-span-12 lg:col-span-5 flex flex-col gap-2.5">
+                <div class="metric-pill">
+                  <span class="m-label">Channel P&L cadence</span>
+                  <span class="m-value">quarterly<span class="arrow">→</span><em>weekly</em></span>
+                </div>
+                <div class="metric-pill">
+                  <span class="m-label">Contribution margin</span>
+                  <span class="m-value">+<em>9.4 pts</em></span>
+                </div>
+                <div class="metric-pill">
+                  <span class="m-label">Founder hours / week</span>
+                  <span class="m-value">14h<span class="arrow">→</span><em>3h</em></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- ============== CASE 04 — Atelier Rosso ============== -->
+        <article class="case-card fade-up d5" data-case>
+          <span class="corner tl" aria-hidden="true"></span>
+          <span class="corner tr" aria-hidden="true"></span>
+          <span class="corner bl" aria-hidden="true"></span>
+          <span class="corner br" aria-hidden="true"></span>
+          <span class="card-index" aria-hidden="true"></span>
+
+          <div class="p-7 lg:p-9">
+            <div class="flex items-center justify-between flex-wrap gap-3 mb-6">
+              <div class="flex items-center gap-4">
+                <span class="case-kicker text-[var(--lime)]">CASE 04 — 2025 Q2</span>
+                <span class="block w-6 h-px bg-[var(--border-bright)]"></span>
+                <span class="case-kicker text-[var(--cream-dim)]">Atelier Rosso</span>
+              </div>
+              <span class="case-kicker text-[var(--muted)]">CRM · Behavioural</span>
+            </div>
+
+            <h3 class="font-serif text-[clamp(1.6rem,2.6vw,2.3rem)] leading-[1.05] tracking-display text-[var(--cream)] mb-7 max-w-[30ch]">
+              Email that <span class="font-serif-italic text-[var(--cream)]">knows what they bought</span>.
+            </h3>
+
+            <div class="slider-frame mb-7" data-slider>
+              <span class="slider-tag before">Before</span>
+              <span class="slider-tag after">After</span>
+              <div class="slider-img-wrap" data-mock="crm-before"></div>
+              <div class="slider-img-wrap slider-after" data-after data-mock="crm-after"></div>
+              <div class="slider-handle" data-handle>
+                <div class="slider-knob" data-knob><span></span><span></span></div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-12 gap-6 lg:gap-10">
+              <div class="col-span-12 lg:col-span-7">
+                <p class="text-[var(--cream-dim)] text-[0.97rem] leading-[1.7] max-w-[55ch] mb-5">
+                  A direct-to-consumer fashion label was sending the same Tuesday newsletter to first-time buyers and ten-time loyalists. We unified shop events, browse history and CRM identity into Klaviyo — every flow now reads from real behavior, every send respects a window. Open rates went up; unsubscribes went down; nobody got a winter coat email in July.
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <span class="platform-pill shopify"><span class="dot"></span>Shopify</span>
+                  <span class="platform-pill klaviyo"><span class="dot"></span>Klaviyo</span>
+                  <span class="platform-pill warehouse"><span class="dot"></span>Segment</span>
+                  <span class="platform-pill warehouse"><span class="dot"></span>HubSpot</span>
+                </div>
+              </div>
+              <div class="col-span-12 lg:col-span-5 flex flex-col gap-2.5">
+                <div class="metric-pill">
+                  <span class="m-label">Flow-driven revenue</span>
+                  <span class="m-value">+<em>41%</em></span>
+                </div>
+                <div class="metric-pill">
+                  <span class="m-label">Unsubscribe rate</span>
+                  <span class="m-value">0.42%<span class="arrow">→</span><em>0.11%</em></span>
+                </div>
+                <div class="metric-pill">
+                  <span class="m-label">Active flows</span>
+                  <span class="m-value">3<span class="arrow">→</span><em>27</em></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+      </div>
+
+      <!-- Bottom CTA -->
+      <div class="mt-14 flex items-center justify-between flex-wrap gap-6 fade-up d6">
+        <div class="font-mono text-[10.5px] tracking-spec uppercase text-[var(--muted)] flex items-center gap-3">
+          <span class="block w-1.5 h-1.5 bg-[var(--lime)] rounded-full" style="box-shadow: 0 0 8px var(--lime);"></span>
+          <span>04 of 12 shown · 08 under NDA</span>
+        </div>
+        <a href="#process" class="continue-link group">
+          <span class="dash"></span>
+          <span>View all case studies</span>
+          <span class="arr" aria-hidden="true">→</span>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+  (() => {
+    // ====== MOCK DASHBOARD GENERATOR ======
+    // Generates inline SVG mockups for each before/after slot.
+    const NS = 'http://www.w3.org/2000/svg';
+    const svgEl = (tag, attrs = {}, parent) => {
+      const el = document.createElementNS(NS, tag);
+      for (const k in attrs) el.setAttribute(k, attrs[k]);
+      if (parent) parent.appendChild(el);
+      return el;
+    };
+    const txt = (parent, x, y, str, cls, extraAttr = {}) => {
+      const t = svgEl('text', { x, y, class: cls, ...extraAttr }, parent);
+      t.textContent = str;
+      return t;
+    };
+
+    function makeBeforeBase(rows) {
+      const svg = svgEl('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid slice' });
+      svgEl('rect', { class: 'mock-bg-before', width: 1600, height: 900 }, svg);
+      svgEl('rect', { x: 0, y: 0, width: 1600, height: 60, fill: '#15130F' }, svg);
+      return svg;
+    }
+    function makeAfterBase(gradId) {
+      const svg = svgEl('svg', { viewBox: '0 0 1600 900', preserveAspectRatio: 'xMidYMid slice' });
+      const defs = svgEl('defs', {}, svg);
+      const grad = svgEl('radialGradient', { id: gradId, cx: '78%', cy: '22%', r: '55%' }, defs);
+      svgEl('stop', { offset: '0%', 'stop-color': '#CCFF33', 'stop-opacity': '0.10' }, grad);
+      svgEl('stop', { offset: '100%', 'stop-color': '#CCFF33', 'stop-opacity': '0' }, grad);
+      svgEl('rect', { class: 'mock-bg-after', width: 1600, height: 900 }, svg);
+      svgEl('rect', { width: 1600, height: 900, fill: `url(#${gradId})` }, svg);
+      svgEl('rect', { x: 0, y: 0, width: 1600, height: 60, fill: '#15130F' }, svg);
+      return svg;
+    }
+
+    const mocks = {
+      'inventory-before': () => {
+        const svg = makeBeforeBase();
+        txt(svg, 40, 38, 'Inventory.csv — last sync 47min ago', 'mock-text-before');
+        txt(svg, 1480, 38, 'CSV · manual', 'mock-text-before', { 'text-anchor': 'end' });
+        // Warehouse columns
+        const wh = ['NL · Rotterdam', 'DE · Köln', 'FR · Lyon', '3PL · Antwerpen'];
+        wh.forEach((label, i) => {
+          const x = 40 + i * 380;
+          svgEl('rect', { x, y: 100, width: 360, height: 60, fill: '#15130F' }, svg);
+          txt(svg, x + 20, 138, label, 'mock-text-before');
+        });
+        // SKU rows with mismatching numbers
+        const skus = ['AUR-001', 'AUR-002', 'AUR-003', 'AUR-004', 'AUR-005', 'AUR-006', 'AUR-007'];
+        skus.forEach((sku, r) => {
+          const y = 180 + r * 70;
+          svgEl('rect', { x: 40, y, width: 1520, height: 60, class: r % 2 === 0 ? 'mock-row-before' : '', fill: r % 2 === 0 ? null : '#15130F' }, svg);
+          for (let c = 0; c < 4; c++) {
+            const cx = 40 + c * 380 + 20;
+            const num = Math.floor(Math.random() * 80 + 4);
+            txt(svg, cx, y + 28, sku, 'mock-text-before');
+            txt(svg, cx, y + 48, `qty ${num}`, 'mock-text-before', { style: 'fill:#8A8578' });
+            // Random oversell flag
+            if (Math.random() < 0.22) {
+              svgEl('rect', { x: cx + 220, y: y + 14, width: 100, height: 22, class: 'mock-accent-before' }, svg);
+              txt(svg, cx + 270, y + 30, 'OVERSOLD', 'mock-text-before', { 'text-anchor': 'middle', style: 'fill:#1F1B14;font-size:9px' });
+            }
+          }
+        });
+        return svg;
+      },
+      'inventory-after': () => {
+        const svg = makeAfterBase('glow2');
+        svgEl('circle', { cx: 40, cy: 30, r: 6, class: 'mock-accent-after' }, svg);
+        txt(svg, 60, 38, 'aql / inventory · single source', 'mock-text-after');
+        txt(svg, 1480, 38, 'live · 4s sync', 'mock-text-after', { 'text-anchor': 'end' });
+        // KPI strip
+        const kpis = [['Total on hand', '24,820'], ['Available', '21,104'], ['Reserved', '3,716'], ['Oversells', '0']];
+        kpis.forEach(([label, val], i) => {
+          const x = 40 + i * 380;
+          svgEl('rect', { x, y: 90, width: 360, height: 120, rx: 10, fill: '#15130F', stroke: '#2A2620' }, svg);
+          txt(svg, x + 20, 120, label, 'mock-text-after', { style: 'fill:#6B6557' });
+          txt(svg, x + 20, 170, val, 'mock-num-after', { style: 'font-size:42px' });
+          if (label === 'Oversells') txt(svg, x + 20, 195, 'last 30 days', 'mock-text-after', { style: 'fill:#CCFF33' });
+        });
+        // Warehouse grid
+        txt(svg, 40, 260, 'warehouses · live', 'mock-text-after', { style: 'fill:#CCFF33' });
+        svgEl('line', { x1: 40, y1: 275, x2: 1560, y2: 275, stroke: '#2A2620' }, svg);
+        const wh2 = ['NL · ROT', 'DE · CGN', 'FR · LYS', '3PL · ANR'];
+        wh2.forEach((label, i) => {
+          const x = 40 + i * 380;
+          svgEl('rect', { x, y: 300, width: 360, height: 220, rx: 10, fill: '#15130F', stroke: '#2A2620' }, svg);
+          txt(svg, x + 20, 330, label, 'mock-text-after', { style: 'fill:#6B6557' });
+          txt(svg, x + 20, 372, (5800 + i * 312).toLocaleString(), 'mock-num-after', { style: 'font-size:36px' });
+          txt(svg, x + 20, 396, 'units', 'mock-text-after', { style: 'fill:#6B6557;font-size:9px' });
+          // mini bar chart
+          for (let b = 0; b < 12; b++) {
+            const h = 10 + Math.random() * 60;
+            svgEl('rect', { x: x + 20 + b * 28, y: 490 - h, width: 18, height: h, class: 'mock-accent-after', opacity: 0.7 }, svg);
+          }
+        });
+        // Footer
+        svgEl('circle', { cx: 50, cy: 850, r: 4, class: 'mock-accent-after' }, svg);
+        txt(svg, 64, 854, 'all warehouses agreeing · 0 drift', 'mock-text-after', { style: 'fill:#6B6557' });
+        txt(svg, 1480, 854, '● synced', 'mock-text-after', { 'text-anchor': 'end', style: 'fill:#CCFF33' });
+        return svg;
+      },
+      'finance-before': () => {
+        const svg = makeBeforeBase();
+        txt(svg, 40, 38, 'P&L_blended_v17_FINAL.xlsx', 'mock-text-before');
+        txt(svg, 1480, 38, 'manual · monthly', 'mock-text-before', { 'text-anchor': 'end' });
+        // One big undifferentiated number
+        txt(svg, 800, 280, '€?', 'mock-num-before', { 'text-anchor': 'middle', style: 'font-size:140px;fill:#3A3527' });
+        txt(svg, 800, 340, 'channel margin · unknown', 'mock-text-before', { 'text-anchor': 'middle' });
+        // messy line chart
+        let pts = '';
+        for (let i = 0; i <= 30; i++) {
+          pts += `${40 + i * 50},${500 + (Math.random() - 0.5) * 220} `;
+        }
+        svgEl('polyline', { points: pts, fill: 'none', stroke: '#3A3527', 'stroke-width': 2 }, svg);
+        // labels
+        ['DTC', 'WHOLESALE', 'SUBSCRIPTION', 'MARKETPLACE'].forEach((l, i) => {
+          const x = 40 + i * 380;
+          svgEl('rect', { x, y: 760, width: 360, height: 80, fill: '#15130F' }, svg);
+          txt(svg, x + 20, 790, l, 'mock-text-before');
+          txt(svg, x + 20, 822, '— pts margin', 'mock-text-before', { style: 'fill:#3A3527' });
+        });
+        return svg;
+      },
+      'finance-after': () => {
+        const svg = makeAfterBase('glow3');
+        svgEl('circle', { cx: 40, cy: 30, r: 6, class: 'mock-accent-after' }, svg);
+        txt(svg, 60, 38, 'aql / finance · margin per channel', 'mock-text-after');
+        txt(svg, 1480, 38, 'weekly · auto', 'mock-text-after', { 'text-anchor': 'end' });
+        // headline number
+        txt(svg, 40, 160, '€642,180', 'mock-num-after', { style: 'font-size:64px' });
+        txt(svg, 40, 195, 'contribution margin · 30d · +9.4 pts', 'mock-text-after', { style: 'fill:#CCFF33' });
+        // 4 channels
+        const channels = [
+          ['DTC', '38.2%', '+2.1', '#CCFF33'],
+          ['Wholesale', '24.7%', '−0.4', '#EDE6D3'],
+          ['Subscription', '18.9%', '−1.8', '#E97451'],
+          ['Marketplace', '11.4%', '+0.9', '#B8B0A0'],
+        ];
+        channels.forEach(([name, val, delta, color], i) => {
+          const x = 40 + i * 380;
+          svgEl('rect', { x, y: 240, width: 360, height: 200, rx: 10, fill: '#15130F', stroke: '#2A2620' }, svg);
+          txt(svg, x + 20, 270, name, 'mock-text-after', { style: 'fill:#6B6557' });
+          txt(svg, x + 20, 320, val, 'mock-num-after', { style: 'font-size:42px' });
+          txt(svg, x + 20, 350, `${delta} pts WoW`, 'mock-text-after', { style: `fill:${color}` });
+          // sparkline
+          let pts = '';
+          for (let j = 0; j < 14; j++) {
+            pts += `${x + 20 + j * 24},${410 - Math.random() * 30} `;
+          }
+          svgEl('polyline', { points: pts, fill: 'none', stroke: color, 'stroke-width': 1.5, opacity: 0.8 }, svg);
+        });
+        // Bottom: weekly P&L stack
+        txt(svg, 40, 500, 'weekly p&l · last 12 weeks', 'mock-text-after', { style: 'fill:#CCFF33' });
+        svgEl('line', { x1: 40, y1: 515, x2: 1560, y2: 515, stroke: '#2A2620' }, svg);
+        for (let w = 0; w < 12; w++) {
+          const x = 40 + w * 128;
+          const heights = [60 + Math.random() * 40, 30 + Math.random() * 20, 20 + Math.random() * 15, 10 + Math.random() * 10];
+          let yCursor = 760;
+          [['#CCFF33', heights[0]], ['#EDE6D3', heights[1]], ['#E97451', heights[2]], ['#B8B0A0', heights[3]]].forEach(([c, h]) => {
+            svgEl('rect', { x, y: yCursor - h, width: 100, height: h, fill: c, opacity: 0.85 }, svg);
+            yCursor -= h;
+          });
+        }
+        txt(svg, 40, 850, '● dtc  ● wholesale  ● subscription  ● marketplace', 'mock-text-after', { style: 'fill:#6B6557;font-size:9px' });
+        return svg;
+      },
+      'crm-before': () => {
+        const svg = makeBeforeBase();
+        txt(svg, 40, 38, 'Klaviyo · single newsletter list', 'mock-text-before');
+        txt(svg, 1480, 38, 'one flow · all', 'mock-text-before', { 'text-anchor': 'end' });
+        // Big "to: everyone"
+        txt(svg, 40, 160, 'TO:', 'mock-text-before', { style: 'font-size:14px' });
+        txt(svg, 40, 220, 'everyone@list.csv', 'mock-num-before', { style: 'font-size:54px;fill:#8A8578' });
+        txt(svg, 40, 260, '247,810 contacts · no segmentation', 'mock-text-before');
+        // calendar grid of repeated sends
+        for (let r = 0; r < 5; r++) {
+          for (let c = 0; c < 12; c++) {
+            const x = 40 + c * 128, y = 340 + r * 90;
+            svgEl('rect', { x, y, width: 110, height: 70, fill: '#15130F', stroke: '#2A2620' }, svg);
+            txt(svg, x + 10, y + 22, `W${c + 1}`, 'mock-text-before', { style: 'font-size:9px;fill:#3A3527' });
+            if ((r + c) % 2 === 0) {
+              svgEl('rect', { x: x + 10, y: y + 30, width: 90, height: 8, fill: '#3A3527' }, svg);
+              txt(svg, x + 10, y + 56, 'newsletter', 'mock-text-before', { style: 'font-size:8px' });
+            }
+          }
+        }
+        txt(svg, 40, 850, 'open rate ~ 14%  ·  unsub rate 0.42%  ·  reply rate 0', 'mock-text-before');
+        return svg;
+      },
+      'crm-after': () => {
+        const svg = makeAfterBase('glow4');
+        svgEl('circle', { cx: 40, cy: 30, r: 6, class: 'mock-accent-after' }, svg);
+        txt(svg, 60, 38, 'aql / crm · klaviyo flows · live', 'mock-text-after');
+        txt(svg, 1480, 38, '27 active flows', 'mock-text-after', { 'text-anchor': 'end' });
+        // segmented audience map
+        const segs = [
+          ['First-time buyer', '42,180', '#CCFF33'],
+          ['Repeat (2-4)', '28,940', '#EDE6D3'],
+          ['Loyalist (5+)', '12,710', '#E97451'],
+          ['Lapsed 90d+', '38,220', '#B8B0A0'],
+        ];
+        segs.forEach(([name, count, color], i) => {
+          const x = 40 + i * 380;
+          svgEl('rect', { x, y: 90, width: 360, height: 130, rx: 10, fill: '#15130F', stroke: '#2A2620' }, svg);
+          svgEl('circle', { cx: x + 30, cy: 124, r: 6, fill: color }, svg);
+          txt(svg, x + 50, 130, name, 'mock-text-after', { style: 'fill:#6B6557' });
+          txt(svg, x + 20, 180, count, 'mock-num-after', { style: 'font-size:36px' });
+          txt(svg, x + 20, 205, 'contacts', 'mock-text-after', { style: 'fill:#6B6557;font-size:9px' });
+        });
+        // Flow tree
+        txt(svg, 40, 270, 'behaviour-triggered flows', 'mock-text-after', { style: 'fill:#CCFF33' });
+        svgEl('line', { x1: 40, y1: 285, x2: 1560, y2: 285, stroke: '#2A2620' }, svg);
+        const flows = [
+          { name: 'Welcome — first-time', open: '54%', click: '12%' },
+          { name: 'Browse abandon · D+1', open: '48%', click: '9.4%' },
+          { name: 'Cart abandon · 2hr', open: '62%', click: '18%' },
+          { name: 'Post-purchase · D+7', open: '41%', click: '7.1%' },
+          { name: 'Replenishment · category', open: '39%', click: '11%' },
+          { name: 'Win-back · 60d', open: '22%', click: '4.8%' },
+        ];
+        flows.forEach((f, i) => {
+          const y = 310 + i * 78;
+          svgEl('rect', { x: 40, y, width: 1520, height: 64, rx: 8, fill: '#15130F', stroke: '#2A2620' }, svg);
+          svgEl('circle', { cx: 64, cy: y + 32, r: 4, class: 'mock-accent-after' }, svg);
+          txt(svg, 84, y + 30, f.name, 'mock-text-after');
+          txt(svg, 84, y + 50, `${Math.floor(Math.random() * 4000 + 1200)} sent · 24h`, 'mock-text-after', { style: 'fill:#6B6557;font-size:9px' });
+          txt(svg, 1100, y + 38, `OPEN ${f.open}`, 'mock-text-after', { style: 'fill:#CCFF33' });
+          txt(svg, 1320, y + 38, `CLICK ${f.click}`, 'mock-text-after', { style: 'fill:#CCFF33' });
+        });
+        return svg;
+      },
+    };
+
+    document.querySelectorAll('[data-mock]').forEach((slot) => {
+      const kind = slot.getAttribute('data-mock');
+      if (mocks[kind]) {
+        const node = mocks[kind]();
+        slot.appendChild(node);
+      }
+    });
+
+    // ====== BEFORE / AFTER SLIDER ======
+    document.querySelectorAll('[data-slider]').forEach((frame) => {
+      const after  = frame.querySelector('[data-after]');
+      const handle = frame.querySelector('[data-handle]');
+      const knob   = frame.querySelector('[data-knob]');
+      let pct = 50;
+      let dragging = false;
+      let pressMoved = false;
+      let pressStartX = 0;
+
+      const setPct = (p) => {
+        pct = Math.max(0, Math.min(100, p));
+        after.style.clipPath = `inset(0 0 0 ${pct}%)`;
+        handle.style.left = `${pct}%`;
+      };
+      setPct(50);
+
+      const xFromEvent = (e) => {
+        const rect = frame.getBoundingClientRect();
+        const clientX = ('touches' in e && e.touches[0]) ? e.touches[0].clientX
+                      : ('changedTouches' in e && e.changedTouches[0]) ? e.changedTouches[0].clientX
+                      : e.clientX;
+        return ((clientX - rect.left) / rect.width) * 100;
+      };
+
+      const start = (e) => {
+        dragging = true;
+        pressMoved = false;
+        pressStartX = xFromEvent(e);
+        knob.classList.add('dragging');
+        // If they grabbed somewhere other than the handle, jump to that x
+        setPct(pressStartX);
+        e.preventDefault();
+      };
+
+      const move = (e) => {
+        if (!dragging) return;
+        const x = xFromEvent(e);
+        // Slightly larger threshold so a finger tap with micro-jitter still snaps back
+        if (Math.abs(x - pressStartX) > 1.5) pressMoved = true;
+        setPct(x);
+        if (e.cancelable) e.preventDefault();
+      };
+
+      const end = () => {
+        if (!dragging) return;
+        dragging = false;
+        knob.classList.remove('dragging');
+        // If user clicked rather than dragged, snap back to 50% with eased animation
+        if (!pressMoved) {
+          const startVal = pct;
+          const target = 50;
+          const dur = 380;
+          const t0 = performance.now();
+          const easeOutBack = (t) => {
+            // cubic-bezier(0.2, 0.85, 0.25, 1) approximation via simple ease-out
+            return 1 - Math.pow(1 - t, 3);
+          };
+          const animate = (now) => {
+            const t = Math.min(1, (now - t0) / dur);
+            setPct(startVal + (target - startVal) * easeOutBack(t));
+            if (t < 1) requestAnimationFrame(animate);
+          };
+          requestAnimationFrame(animate);
+        }
+      };
+
+      // Pointer events (covers mouse + touch + pen on modern browsers)
+      frame.addEventListener('pointerdown', (e) => {
+        frame.setPointerCapture?.(e.pointerId);
+        start(e);
+      });
+      frame.addEventListener('pointermove', move);
+      frame.addEventListener('pointerup', end);
+      frame.addEventListener('pointercancel', end);
+      frame.addEventListener('pointerleave', (e) => { if (dragging) end(e); });
+
+      // Fallback: touch (in case pointer events misbehave on older mobile)
+      frame.addEventListener('touchstart',  start, { passive: false });
+      frame.addEventListener('touchmove',   move,  { passive: false });
+      frame.addEventListener('touchend',    end);
+      frame.addEventListener('touchcancel', end);
+    });
+
+    // ====== Optional: stagger reveal also on scroll into view ======
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.style.animationPlayState = 'running';
+            io.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12 });
+      // already running on load; observer is here as a no-op safeguard
+    }
+  })();
+  </script>
+</body>
+</html>

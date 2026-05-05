@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AQL — Eighteen tools, one source of truth.</title>
+  <meta name="description" content="AQL builds the dashboards, integrations and finance systems that turn cross-border e-commerce chaos into a single, operable view." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0B0A08;
+      --bg-elevated: #15130F;
+      --bg-floating: #1F1B14;
+      --border: #2A2620;
+      --border-bright: #3A3527;
+      --cream: #EDE6D3;
+      --cream-dim: #B8B0A0;
+      --muted: #6B6557;
+      --lime: #CCFF33;
+      --lime-dim: #A8D628;
+      --amber: #E97451;
+      --danger: #FF4538;
+    }
+    * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    html, body { background: var(--bg); }
+    body {
+      color: var(--cream);
+      font-family: 'Manrope', sans-serif;
+      overflow-x: hidden;
+    }
+    .font-serif-italic { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; }
+    .font-serif { font-family: 'Instrument Serif', serif; font-weight: 400; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Grain overlay */
+    .grain::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+      opacity: 0.08; mix-blend-mode: overlay; z-index: 100;
+    }
+
+    /* Atmospheric glow */
+    .hero-glow {
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 60% at 80% 40%, rgba(204, 255, 51, 0.10) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 35% at 15% 75%, rgba(233, 116, 81, 0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 90% 50% at 50% 0%, rgba(237, 230, 211, 0.04) 0%, transparent 60%);
+    }
+
+    /* Faint tech grid */
+    .tech-grid {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(237, 230, 211, 0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(237, 230, 211, 0.022) 1px, transparent 1px);
+      background-size: 80px 80px;
+      mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black, transparent 90%);
+    }
+
+    .tracking-spec { letter-spacing: 0.16em; }
+    .tracking-display { letter-spacing: -0.035em; }
+
+    /* Headline stagger reveal */
+    .reveal-line {
+      display: block; overflow: hidden; padding-bottom: 0.05em;
+    }
+    .reveal-line > .reveal-inner {
+      display: inline-block;
+      transform: translateY(110%);
+      animation: reveal 1.05s cubic-bezier(0.2, 0.85, 0.25, 1) forwards;
+    }
+    .reveal-line.d1 > .reveal-inner { animation-delay: 0.18s; }
+    .reveal-line.d2 > .reveal-inner { animation-delay: 0.34s; }
+    @keyframes reveal { to { transform: translateY(0); } }
+
+    .fade-up { opacity: 0; transform: translateY(14px); animation: fadeup 1s cubic-bezier(0.2, 0.8, 0.25, 1) forwards; }
+    .fade-up.d1 { animation-delay: 0.55s; }
+    .fade-up.d2 { animation-delay: 0.75s; }
+    .fade-up.d3 { animation-delay: 0.95s; }
+    .fade-up.d4 { animation-delay: 1.15s; }
+    .fade-up.d5 { animation-delay: 1.35s; }
+    @keyframes fadeup { to { opacity: 1; transform: translateY(0); } }
+
+    /* Map corner brackets */
+    .corner {
+      position: absolute; width: 18px; height: 18px;
+      pointer-events: none;
+    }
+    .corner::before, .corner::after {
+      content: ''; position: absolute; background: var(--cream-dim); opacity: 0.55;
+    }
+    .corner.tl { top: 14px; left: 14px; }
+    .corner.tl::before { top: 0; left: 0; width: 18px; height: 1px; }
+    .corner.tl::after  { top: 0; left: 0; width: 1px; height: 18px; }
+    .corner.tr { top: 14px; right: 14px; }
+    .corner.tr::before { top: 0; right: 0; width: 18px; height: 1px; }
+    .corner.tr::after  { top: 0; right: 0; width: 1px; height: 18px; }
+    .corner.bl { bottom: 14px; left: 14px; }
+    .corner.bl::before { bottom: 0; left: 0; width: 18px; height: 1px; }
+    .corner.bl::after  { bottom: 0; left: 0; width: 1px; height: 18px; }
+    .corner.br { bottom: 14px; right: 14px; }
+    .corner.br::before { bottom: 0; right: 0; width: 18px; height: 1px; }
+    .corner.br::after  { bottom: 0; right: 0; width: 1px; height: 18px; }
+
+    /* Buttons */
+    .btn-primary {
+      position: relative; display: inline-flex; align-items: center; gap: 0.65rem;
+      padding: 0.95rem 1.5rem;
+      background: var(--lime); color: var(--bg);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.74rem; font-weight: 500;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      border-radius: 999px;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.45),
+        inset 0 -1px 0 rgba(0,0,0,0.15),
+        0 8px 28px -8px rgba(204, 255, 51, 0.55),
+        0 2px 6px -2px rgba(0,0,0,0.6);
+      transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.25, 1), box-shadow 0.28s;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.5),
+        inset 0 -1px 0 rgba(0,0,0,0.15),
+        0 14px 36px -8px rgba(204, 255, 51, 0.7),
+        0 4px 12px -2px rgba(0,0,0,0.7);
+    }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:focus-visible { outline: 2px solid var(--lime); outline-offset: 4px; }
+
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 0.65rem;
+      padding: 0.95rem 1.25rem;
+      background: transparent; color: var(--cream);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.74rem; font-weight: 400;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      border: 1px solid var(--border-bright);
+      border-radius: 999px;
+      transition: border-color 0.25s, background 0.25s, transform 0.25s cubic-bezier(0.2, 0.8, 0.25, 1);
+    }
+    .btn-ghost:hover { border-color: var(--cream); background: rgba(237, 230, 211, 0.04); transform: translateY(-1px); }
+    .btn-ghost:focus-visible { outline: 2px solid var(--cream); outline-offset: 4px; }
+
+    /* Marquee */
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+    .marquee-track {
+      display: flex; width: max-content;
+      animation: marquee 70s linear infinite;
+    }
+
+    /* Subtle flicker for ticker numbers */
+    @keyframes flicker {
+      0%, 100% { opacity: 1; }
+      45%      { opacity: 0.86; }
+      55%      { opacity: 1; }
+    }
+
+    /* Status pill */
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      padding: 0.42rem 0.7rem;
+      background: rgba(11, 10, 8, 0.65);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--border-bright);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem; font-weight: 500;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--cream);
+    }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; transition: background 0.4s; }
+
+    /* Highlight under "of truth" */
+    .lime-underline {
+      background-image: linear-gradient(transparent 76%, rgba(204, 255, 51, 0.55) 76%, rgba(204, 255, 51, 0.55) 92%, transparent 92%);
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      padding: 0 0.04em;
+    }
+
+    /* Progress UI for map */
+    .progress-track {
+      position: relative; height: 1px; background: var(--border-bright);
+      width: 100%;
+    }
+    .progress-fill {
+      position: absolute; top: 0; left: 0; height: 100%;
+      background: linear-gradient(90deg, var(--amber), var(--cream) 50%, var(--lime));
+    }
+    .progress-knob {
+      position: absolute; top: 50%; transform: translate(-50%, -50%);
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--cream);
+      box-shadow: 0 0 0 2px rgba(11,10,8,1), 0 0 14px rgba(204, 255, 51, 0.5);
+    }
+
+    /* Logo dot bloom */
+    @keyframes logobloom {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.04); }
+    }
+    .logo-dot { animation: logobloom 3s ease-in-out infinite; }
+
+    /* Local-PNG brand glyphs in the chaos map: many official brand assets ship
+       with a solid black background. mix-blend-mode: screen lets us reuse them
+       directly on the dark page — black becomes transparent, white survives. */
+    #chaos-svg .platform-glyph-local {
+      mix-blend-mode: screen;
+    }
+
+    /* No transition-all anywhere. */
+
+    /* ============== Mobile chaos-map adjustments ==============
+       At small viewports the SVG renders at ~340-430px wide so the
+       18-node orbit gets crowded. Hide the kind-tag micro-text above
+       each node, bump the label font so it reads, and let the node
+       label clip a little tighter. CSS pixels here override SVG attrs. */
+    @media (max-width: 768px) {
+      #chaos-svg .node-kind { display: none; }
+      #chaos-svg .node-label {
+        font-size: 11px;
+        letter-spacing: 0.5px;
+      }
+    }
+
+    /* ============== Mobile nav (hamburger) ============== */
+    .mobile-menu-btn {
+      display: none;
+      background: transparent;
+      border: 1px solid var(--border-bright);
+      border-radius: 999px;
+      padding: 0.55rem 0.65rem;
+      cursor: pointer;
+      color: var(--cream);
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .mobile-menu-btn:hover { border-color: var(--cream); background: rgba(237, 230, 211, 0.04); }
+    .mobile-menu-btn:focus-visible { outline: 2px solid var(--lime); outline-offset: 4px; }
+    .mobile-menu-btn .bars {
+      display: flex; flex-direction: column; gap: 4px;
+      width: 18px;
+    }
+    .mobile-menu-btn .bars span {
+      display: block; height: 1.5px; background: var(--cream); border-radius: 2px;
+      transition: transform 0.28s cubic-bezier(0.2, 0.85, 0.25, 1), opacity 0.18s;
+    }
+    .mobile-menu-btn[aria-expanded="true"] .bars span:nth-child(1) {
+      transform: translateY(5.5px) rotate(45deg);
+    }
+    .mobile-menu-btn[aria-expanded="true"] .bars span:nth-child(2) { opacity: 0; }
+    .mobile-menu-btn[aria-expanded="true"] .bars span:nth-child(3) {
+      transform: translateY(-5.5px) rotate(-45deg);
+    }
+
+    /* Slide-in mobile drawer */
+    .mobile-drawer {
+      position: fixed; inset: 0; z-index: 50;
+      width: 100vw; max-width: 100vw;
+      box-sizing: border-box;
+      background: rgba(11, 10, 8, 0.96);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      display: flex; flex-direction: column;
+      padding: 7rem 2rem 2.5rem;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-12px);
+      transition: opacity 0.28s, transform 0.32s cubic-bezier(0.2, 0.85, 0.25, 1);
+    }
+    .mobile-drawer ul, .mobile-drawer > div { min-width: 0; }
+    .mobile-drawer.is-open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+    .mobile-drawer ul { display: flex; flex-direction: column; gap: 1.4rem; }
+    .mobile-drawer a {
+      font-family: 'Instrument Serif', serif;
+      font-size: 2.4rem;
+      letter-spacing: -0.025em;
+      color: var(--cream);
+      line-height: 1;
+    }
+    .mobile-drawer a .num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.16em;
+      color: var(--cream-dim);
+      margin-right: 1rem;
+      vertical-align: middle;
+    }
+    .mobile-drawer .lime-arrow { color: var(--lime); margin-left: 0.5rem; }
+
+    @media (max-width: 768px) {
+      .mobile-menu-btn { display: inline-flex; }
+      /* Hide the desktop EST badge on mobile — saves space next to hamburger */
+      .nav-meta-desktop { display: none !important; }
+      /* Hide "↑ data flow ↑" on the chaos map at very narrow widths — collides with nodes */
+      .data-flow-caption { display: none; }
+      /* Stats row: stack on phone for breathing room */
+      .hero-stats { grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+      .hero-stats .label { font-size: 8.5px; line-height: 1.35; }
+    }
+    @media (max-width: 420px) {
+      .hero-stats { grid-template-columns: 1fr 1fr; }
+      .hero-stats > :last-child { grid-column: span 2; }
+    }
+
+    /* iOS safe-area + viewport fixes */
+    @supports (padding: env(safe-area-inset-bottom)) {
+      body { padding-bottom: env(safe-area-inset-bottom); }
+    }
+  </style>
+</head>
+<body class="grain min-h-screen relative">
+  <div class="tech-grid"></div>
+
+  <!-- ============== NAV ============== -->
+  <nav class="relative z-20 max-w-[1440px] mx-auto px-6 lg:px-12 pt-7 pb-2 flex items-center justify-between">
+    <a href="#" class="flex items-center gap-2.5 group">
+      <span class="logo-dot block w-7 h-7 rounded-full relative" style="background: radial-gradient(circle at 32% 28%, #F4FFB0, var(--lime) 38%, var(--lime-dim) 100%); box-shadow: 0 0 18px -2px rgba(204,255,51,0.55);"></span>
+      <span class="font-serif-italic text-[1.55rem] tracking-display text-[var(--cream)] -ml-0.5">aql</span>
+      <span class="hidden sm:inline font-mono text-[10px] tracking-spec uppercase text-[var(--muted)] ml-2 mt-1">/ studio</span>
+    </a>
+    <ul class="hidden md:flex items-center gap-9 font-mono text-[11px] tracking-spec uppercase text-[var(--cream-dim)]">
+      <li><a href="#cases" class="hover:text-[var(--cream)] transition-colors duration-200">Work<sup class="text-[var(--lime)] ml-1 text-[8px]">18</sup></a></li>
+      <li><a href="#process" class="hover:text-[var(--cream)] transition-colors duration-200">Process</a></li>
+      <li><a href="#capabilities" class="hover:text-[var(--cream)] transition-colors duration-200">Stack</a></li>
+      <li><a href="#contact" class="hover:text-[var(--cream)] transition-colors duration-200">Contact</a></li>
+    </ul>
+    <div class="nav-meta-desktop hidden md:flex items-center gap-3 font-mono text-[10px] tracking-spec uppercase">
+      <span class="text-[var(--muted)]">EST.</span>
+      <span class="text-[var(--cream-dim)]">2021</span>
+      <span class="text-[var(--muted)]">·</span>
+      <span class="text-[var(--cream-dim)]">NL / EU</span>
+    </div>
+    <!-- Mobile hamburger (visible <768px via .mobile-menu-btn media query) -->
+    <button id="mobile-menu-btn" class="mobile-menu-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-drawer">
+      <span class="bars" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
+  </nav>
+
+  <!-- Mobile drawer -->
+  <div id="mobile-drawer" class="mobile-drawer" role="dialog" aria-modal="true" aria-label="Site navigation">
+    <ul>
+      <li><a href="#cases"        data-mobile-link><span class="num">01</span>Work<span class="lime-arrow">→</span></a></li>
+      <li><a href="#process"      data-mobile-link><span class="num">02</span>Process<span class="lime-arrow">→</span></a></li>
+      <li><a href="#capabilities" data-mobile-link><span class="num">03</span>Stack<span class="lime-arrow">→</span></a></li>
+      <li><a href="#contact"      data-mobile-link><span class="num">04</span>Contact<span class="lime-arrow">→</span></a></li>
+    </ul>
+    <div class="mt-auto font-mono text-[10px] tracking-spec uppercase text-[var(--cream-dim)] flex items-center justify-between">
+      <span><span class="text-[var(--muted)]">EST.</span> 2021 · NL / EU</span>
+      <span class="flex items-center gap-2"><span class="block w-1.5 h-1.5 rounded-full bg-[var(--lime)]" style="box-shadow: 0 0 8px var(--lime);"></span>AVAILABLE Q2 2026</span>
+    </div>
+  </div>
+
+  <!-- ============== HERO ============== -->
+  <section class="relative">
+    <div class="hero-glow"></div>
+
+    <div class="relative z-10 max-w-[1440px] mx-auto px-6 lg:px-12 pt-10 lg:pt-14 pb-14 grid grid-cols-12 gap-x-0 gap-y-8 lg:gap-10 items-start">
+
+      <!-- LEFT: Type column -->
+      <div class="col-span-12 lg:col-span-5 flex flex-col gap-6">
+
+        <div class="fade-up flex items-center gap-3 font-mono text-[10.5px] tracking-spec uppercase text-[var(--cream-dim)]">
+          <span class="block w-7 h-px bg-[var(--cream-dim)]"></span>
+          <span>AQL · Operational Infrastructure Studio</span>
+        </div>
+
+        <h1 class="font-serif text-[clamp(2.1rem,5.6vw,4.85rem)] leading-[0.96] tracking-display text-[var(--cream)]">
+          <span class="reveal-line"><span class="reveal-inner">Your stack,</span></span>
+          <span class="reveal-line d1"><span class="reveal-inner font-serif-italic">finally <span class="lime-underline">running</span></span></span>
+          <span class="reveal-line d2"><span class="reveal-inner font-serif-italic">as one.</span></span>
+        </h1>
+
+        <p class="fade-up d1 text-[var(--cream-dim)] text-[1.02rem] leading-[1.65] max-w-[36ch]">
+          The dashboards, CRMs, integrations and automations operators have been duct-taping for years — built properly.
+          <span class="text-[var(--cream)]">Across e-commerce, finance and services</span> — wherever scattered tools meet a team that needs to ship.
+        </p>
+
+        <div class="fade-up d2 flex flex-wrap items-center gap-3 mt-1">
+          <a href="#demos" class="btn-primary">
+            <span>See the work</span>
+            <span aria-hidden="true" class="text-base">→</span>
+          </a>
+          <a href="#process" class="btn-ghost">
+            How we engage
+          </a>
+        </div>
+
+        <div class="hero-stats fade-up d3 mt-5 grid grid-cols-3 gap-5 border-t border-[var(--border)] pt-6">
+          <div>
+            <div class="font-serif text-[2rem] leading-none text-[var(--cream)]" style="animation: flicker 4.1s ease-in-out infinite;">€48M+</div>
+            <div class="font-mono text-[9.5px] tracking-spec uppercase text-[var(--muted)] mt-2 leading-snug">GMV under management</div>
+          </div>
+          <div>
+            <div class="font-serif text-[2rem] leading-none text-[var(--cream)]" style="animation: flicker 4.7s ease-in-out infinite 0.4s;">7</div>
+            <div class="font-mono text-[9.5px] tracking-spec uppercase text-[var(--muted)] mt-2 leading-snug">EU markets · 1 view</div>
+          </div>
+          <div>
+            <div class="font-serif text-[2rem] leading-none text-[var(--cream)]" style="animation: flicker 5.3s ease-in-out infinite 0.8s;">96<span class="text-[var(--lime)] font-serif-italic">h</span></div>
+            <div class="font-mono text-[9.5px] tracking-spec uppercase text-[var(--muted)] mt-2 leading-snug">Reclaimed / month / brand</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Chaos Map -->
+      <div class="col-span-12 lg:col-span-7 fade-up d2">
+        <div class="relative aspect-square w-full max-w-[700px] mx-auto rounded-[20px] overflow-hidden"
+             style="background: radial-gradient(ellipse 90% 90% at 50% 45%, #15130F 0%, #0D0B09 60%, #08070612 100%); border: 1px solid var(--border);">
+
+          <!-- corner registration marks -->
+          <span class="corner tl" aria-hidden="true"></span>
+          <span class="corner tr" aria-hidden="true"></span>
+          <span class="corner bl" aria-hidden="true"></span>
+          <span class="corner br" aria-hidden="true"></span>
+
+          <!-- top labels -->
+          <div class="absolute top-4 left-6 z-10 font-mono text-[10px] tracking-spec uppercase text-[var(--cream-dim)] flex items-center gap-2">
+            <span class="block w-1.5 h-1.5 bg-[var(--lime)] rounded-full" style="box-shadow: 0 0 8px var(--lime);"></span>
+            <span>Fig.01 — The Chaos Map</span>
+          </div>
+
+          <div class="absolute top-3 right-5 z-10">
+            <div class="status-pill">
+              <span id="status-dot" class="status-dot" style="background: var(--amber);"></span>
+              <span id="status-text">STATUS · TANGLED</span>
+            </div>
+          </div>
+
+          <!-- The map -->
+          <svg id="chaos-svg" viewBox="0 0 600 600" class="absolute inset-0 w-full h-full"
+               preserveAspectRatio="xMidYMid meet" aria-label="Chaos Map: a continuous animation showing scattered e-commerce platforms reorganizing into a unified core.">
+            <defs>
+              <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#CCFF33" stop-opacity="0.42" />
+                <stop offset="40%" stop-color="#CCFF33" stop-opacity="0.10" />
+                <stop offset="100%" stop-color="#CCFF33" stop-opacity="0" />
+              </radialGradient>
+              <filter id="hubBlur" x="-100%" y="-100%" width="300%" height="300%">
+                <feGaussianBlur stdDeviation="6" />
+              </filter>
+            </defs>
+
+            <!-- center glow -->
+            <circle cx="300" cy="300" r="240" fill="url(#centerGlow)" />
+
+            <!-- crosshair -->
+            <g opacity="0.30" stroke="#3A3527" stroke-width="0.6">
+              <line x1="0" y1="300" x2="600" y2="300" stroke-dasharray="1 7" />
+              <line x1="300" y1="0" x2="300" y2="600" stroke-dasharray="1 7" />
+            </g>
+
+            <!-- concentric guide rings -->
+            <g opacity="0.32" stroke="#3A3527" stroke-width="0.5" fill="none">
+              <circle cx="300" cy="300" r="120" stroke-dasharray="2 5" />
+              <circle cx="300" cy="300" r="220" stroke-dasharray="2 5" />
+              <circle cx="300" cy="300" r="280" stroke-dasharray="2 8" opacity="0.5" />
+            </g>
+
+            <!-- chaos lines layer -->
+            <g id="chaos-lines" stroke="#FF4538" stroke-width="1" fill="none" opacity="1"></g>
+
+            <!-- order lines layer -->
+            <g id="order-lines" stroke="#CCFF33" stroke-width="0.9" fill="none" opacity="0"></g>
+
+            <!-- AQL center hub -->
+            <g id="hub" transform="translate(300,300)">
+              <circle id="hub-pulse-1" r="38" fill="none" stroke="#CCFF33" stroke-width="1" opacity="0" />
+              <circle id="hub-pulse-2" r="38" fill="none" stroke="#CCFF33" stroke-width="1" opacity="0" />
+              <circle r="44" fill="#0B0A08" stroke="#CCFF33" stroke-width="1.2" opacity="0.35" />
+              <circle r="36" fill="#0B0A08" stroke="#CCFF33" stroke-width="1.5" />
+              <circle r="30" fill="#CCFF33" />
+              <circle r="30" fill="#CCFF33" filter="url(#hubBlur)" opacity="0.55" />
+              <text y="3" text-anchor="middle" font-family="Instrument Serif" font-style="italic" font-size="22" fill="#0B0A08" font-weight="500">aql</text>
+              <text y="62" text-anchor="middle" font-family="JetBrains Mono" font-size="7.5" fill="#8A8578" letter-spacing="2.2">UNIFIED CORE</text>
+            </g>
+
+            <!-- nodes (rendered by JS) -->
+            <g id="nodes"></g>
+          </svg>
+
+          <!-- Bottom progress UI -->
+          <div class="absolute bottom-5 left-6 right-6 z-10">
+            <div class="flex items-center justify-between font-mono text-[9.5px] tracking-spec uppercase mb-2">
+              <span class="text-[var(--amber)]">Chaos</span>
+              <span class="data-flow-caption text-[var(--cream-dim)]">↑ data flow ↑</span>
+              <span class="text-[var(--lime)]">Clarity</span>
+            </div>
+            <div class="progress-track">
+              <div id="progress-fill" class="progress-fill" style="width: 0%;"></div>
+              <div id="progress-knob" class="progress-knob" style="left: 0%;"></div>
+            </div>
+            <div class="flex items-center justify-between font-mono text-[9px] tracking-spec uppercase mt-2 text-[var(--muted)]">
+              <span>T −00:00</span>
+              <span id="map-counter">18 NODES · 0 SYNCED</span>
+              <span>T +00:12</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== Bottom marquee ============== -->
+    <div class="relative z-10 mt-2 border-y border-[var(--border)] py-4 overflow-hidden">
+      <div class="marquee-track">
+        <span id="mq-1" class="flex items-center gap-10 px-5 font-mono text-[12px] tracking-spec uppercase text-[var(--cream-dim)] whitespace-nowrap"></span>
+        <span id="mq-2" class="flex items-center gap-10 px-5 font-mono text-[12px] tracking-spec uppercase text-[var(--cream-dim)] whitespace-nowrap" aria-hidden="true"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- spacer / next-section sneak-peek -->
+  <section class="relative max-w-[1440px] mx-auto px-6 lg:px-12 py-20 grid grid-cols-12 gap-x-0 gap-y-10 lg:gap-10 items-end">
+    <div class="col-span-12 lg:col-span-7 font-serif text-[clamp(1.6rem,2.5vw,2.4rem)] leading-[1.2] text-[var(--cream-dim)]">
+      Below this fold, the work itself: <span class="text-[var(--cream)] font-serif-italic">dashboards, CRMs, integrations, automation</span> — every shape we've shipped, distilled into four kinds of operational layer.
+    </div>
+    <div class="col-span-12 lg:col-span-5 flex lg:justify-end">
+      <a href="#capabilities" class="font-mono text-[10.5px] tracking-spec uppercase text-[var(--cream)] inline-flex items-center gap-3 group">
+        <span class="block w-9 h-px bg-[var(--cream)] transition-transform duration-300 group-hover:w-14" style="transform-origin: left;"></span>
+        Continue
+      </a>
+    </div>
+  </section>
+
+  <script>
+  // ====== Mobile drawer toggle ======
+  (() => {
+    const btn = document.getElementById('mobile-menu-btn');
+    const drawer = document.getElementById('mobile-drawer');
+    if (!btn || !drawer) return;
+    function setOpen(open) {
+      btn.setAttribute('aria-expanded', String(open));
+      btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      drawer.classList.toggle('is-open', open);
+      document.body.style.overflow = open ? 'hidden' : '';
+    }
+    btn.addEventListener('click', () => {
+      setOpen(btn.getAttribute('aria-expanded') !== 'true');
+    });
+    drawer.querySelectorAll('[data-mobile-link]').forEach((a) => {
+      a.addEventListener('click', () => setOpen(false));
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && drawer.classList.contains('is-open')) setOpen(false);
+    });
+  })();
+
+  (() => {
+    // ====== CONFIG ======
+    const W = 600, H = 600;
+    const cx = W / 2, cy = H / 2;
+    const orbitR = 220;
+
+    // Note: amazon / klaviyo / mollie / slack were removed from Simple Icons
+    // (trademark policy). We render those as styled wordmarks instead.
+    // Drop a brand SVG into /brand_assets/logos/<slug>.svg and add `logoSrc:`
+    // to use the official mark with a wordmark fallback.
+    const platforms = [
+      // Channels
+      { id: 'shopify',  label: 'SHOPIFY',     kind: 'CHANNEL',    logo: 'shopify' },
+      { id: 'bol',      label: 'BOL.COM',     kind: 'CHANNEL',    mark: { text: 'bol',    dot: true } },
+      { id: 'amazon',   label: 'AMAZON',      kind: 'CHANNEL',    logoSrc: '/brand_assets/logos/amazon.png', logoWide: true, mark: { text: 'amzn' } },
+      { id: 'temu',     label: 'TEMU',        kind: 'CHANNEL',    mark: { text: 'temu' } },
+      { id: 'noon',     label: 'NOON',        kind: 'CHANNEL',    mark: { text: 'noon',   dot: true } },
+      { id: 'tiktok',   label: 'TIKTOK',      kind: 'CHANNEL',    logo: 'tiktok' },
+      // Marketing
+      { id: 'klaviyo',  label: 'KLAVIYO',     kind: 'MARKETING',  mark: { text: 'klvyo' } },
+      { id: 'meta',     label: 'META',        kind: 'MARKETING',  logo: 'meta' },
+      // Payments
+      { id: 'stripe',   label: 'STRIPE',      kind: 'PAYMENTS',   logo: 'stripe' },
+      { id: 'mollie',   label: 'MOLLIE',      kind: 'PAYMENTS',   mark: { text: 'mollie' } },
+      // Ops
+      { id: 'dhl',      label: 'DHL',         kind: 'FULFILMENT', logo: 'dhl' },
+      { id: 'hubspot',  label: 'HUBSPOT',     kind: 'CRM',        logo: 'hubspot' },
+      // Workspace
+      { id: 'gmail',    label: 'GMAIL',       kind: 'WORKSPACE',  logo: 'gmail' },
+      { id: 'sheets',   label: 'SHEETS',      kind: 'WORKSPACE',  logo: 'googlesheets' },
+      { id: 'drive',    label: 'DRIVE',       kind: 'WORKSPACE',  logo: 'googledrive' },
+      // Booking
+      { id: 'calendly', label: 'CALENDLY',    kind: 'BOOKING',    logo: 'calendly' },
+      // Comms
+      { id: 'whatsapp', label: 'WHATSAPP',    kind: 'COMMS',      logo: 'whatsapp' },
+      { id: 'telegram', label: 'TELEGRAM',    kind: 'COMMS',      logo: 'telegram' },
+    ];
+
+    function rand(i, salt) {
+      const x = Math.sin(i * 12.9898 + salt * 78.233) * 43758.5453;
+      return x - Math.floor(x);
+    }
+
+    // chaos & order positions
+    // Chaos: scatter nodes around the canvas with a "no-fly zone" near the AQL hub
+    // Each node gets a randomized angle/radius from center, kept inside bounds and outside the inner zone.
+    const innerZone = 165;   // min distance from hub
+    const outerZone = 270;   // max distance from hub
+    platforms.forEach((p, i) => {
+      const baseAngle = (i / platforms.length) * Math.PI * 2;
+      const angleJitter = (rand(i, 1) - 0.5) * 0.9; // ±0.45 rad
+      const cAngle = baseAngle + angleJitter;
+      const cRadius = innerZone + rand(i, 2) * (outerZone - innerZone);
+      p.chaos = {
+        x: cx + Math.cos(cAngle) * cRadius,
+        y: cy + Math.sin(cAngle) * cRadius,
+      };
+      const angle = (i / platforms.length) * Math.PI * 2 - Math.PI / 2;
+      p.order = {
+        x: cx + Math.cos(angle) * orbitR,
+        y: cy + Math.sin(angle) * orbitR,
+      };
+      p.angle = angle;
+    });
+
+    // chaotic edge graph: each node connects to 3 others
+    const chaosPairs = [];
+    for (let i = 0; i < platforms.length; i++) {
+      [3, 5, 7].forEach(o => {
+        const j = (i + o) % platforms.length;
+        const a = Math.min(i, j), b = Math.max(i, j);
+        if (!chaosPairs.some(([x,y]) => x===a && y===b)) chaosPairs.push([a, b]);
+      });
+    }
+
+    // ====== DOM SETUP ======
+    const NS = 'http://www.w3.org/2000/svg';
+    const nodesG = document.getElementById('nodes');
+    const chaosG = document.getElementById('chaos-lines');
+    const orderG = document.getElementById('order-lines');
+
+    // Render a styled text wordmark for nodes without a logo image.
+    // Used directly for bol/temu/noon/etc. and as a fallback if logoSrc 404s.
+    function renderWordmark(mark) {
+      const grp = document.createElementNS(NS, 'g');
+      const wm = document.createElementNS(NS, 'text');
+      wm.setAttribute('text-anchor', 'middle');
+      wm.setAttribute('y', '4');
+      const len = mark.text.length;
+      const fontSize = len <= 4 ? 12 : len === 5 ? 10.5 : len === 6 ? 9.5 : 8.5;
+      const charW = fontSize * 0.55;
+      wm.setAttribute('font-family', 'Manrope');
+      wm.setAttribute('font-size', String(fontSize));
+      wm.setAttribute('font-weight', '700');
+      wm.setAttribute('letter-spacing', '-0.3');
+      wm.setAttribute('fill', '#EDE6D3');
+      wm.textContent = mark.text;
+      grp.appendChild(wm);
+      if (mark.dot) {
+        const w = len * charW;
+        const accent = document.createElementNS(NS, 'circle');
+        accent.setAttribute('r', '1.6');
+        accent.setAttribute('cx', String(w / 2 + 1.8));
+        accent.setAttribute('cy', '4');
+        accent.setAttribute('fill', '#CCFF33');
+        grp.appendChild(accent);
+      }
+      return grp;
+    }
+
+    const nodeEls = platforms.map((p, i) => {
+      const g = document.createElementNS(NS, 'g');
+      g.id = `node-${p.id}`;
+
+      const ring = document.createElementNS(NS, 'circle');
+      ring.setAttribute('r', 25);
+      ring.setAttribute('fill', '#0B0A08');
+      ring.setAttribute('stroke', '#3A3527');
+      ring.setAttribute('stroke-width', '1');
+      g.appendChild(ring);
+
+      const ringInner = document.createElementNS(NS, 'circle');
+      ringInner.setAttribute('r', 19);
+      ringInner.setAttribute('fill', 'none');
+      ringInner.setAttribute('stroke', '#2A2620');
+      ringInner.setAttribute('stroke-width', '0.5');
+      ringInner.setAttribute('stroke-dasharray', '1 3');
+      g.appendChild(ringInner);
+
+      // Glyph: a Simple Icons logo, a custom local/remote SVG, or a styled wordmark.
+      // - p.logo:    Simple Icons slug (cdn.simpleicons.org/<slug>/<hex>)
+      // - p.logoSrc: any URL (e.g., '/brand_assets/logos/amazon.svg') — used for
+      //              brands that aren't on Simple Icons. Drop the SVG file in
+      //              brand_assets/logos/ from the brand's official source.
+      // - p.mark:    fallback styled wordmark
+      let glyph;
+      if (p.logo || p.logoSrc) {
+        glyph = document.createElementNS(NS, 'image');
+        const src = p.logoSrc
+          ? p.logoSrc
+          : `https://cdn.simpleicons.org/${p.logo}/EDE6D3`;
+        glyph.setAttribute('href', src);
+        // Wordmark-shaped logos (Amazon, etc.) get a wider render box.
+        // Local PNGs often ship with a black/white background — class hooks
+        // mix-blend-mode CSS that drops the black on dark sections.
+        if (p.logoWide) {
+          glyph.setAttribute('x', '-16');
+          glyph.setAttribute('y', '-6');
+          glyph.setAttribute('width', '32');
+          glyph.setAttribute('height', '12');
+        } else {
+          glyph.setAttribute('x', '-11');
+          glyph.setAttribute('y', '-11');
+          glyph.setAttribute('width', '22');
+          glyph.setAttribute('height', '22');
+        }
+        glyph.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+        glyph.setAttribute('class', p.logoSrc ? 'platform-glyph platform-glyph-local' : 'platform-glyph');
+        // Fallback: if the image fails to load, render the wordmark instead.
+        if (p.mark) {
+          glyph.addEventListener('error', () => {
+            const fallback = renderWordmark(p.mark);
+            glyph.replaceWith(fallback);
+          });
+        }
+      } else {
+        glyph = renderWordmark(p.mark);
+      }
+      g.appendChild(glyph);
+
+      const tag = document.createElementNS(NS, 'text');
+      tag.setAttribute('class', 'node-kind');
+      tag.setAttribute('y', -32);
+      tag.setAttribute('text-anchor', 'middle');
+      tag.setAttribute('font-family', 'JetBrains Mono');
+      tag.setAttribute('font-size', '6');
+      tag.setAttribute('letter-spacing', '1.6');
+      tag.setAttribute('fill', '#6B6557');
+      tag.textContent = p.kind;
+      g.appendChild(tag);
+
+      const label = document.createElementNS(NS, 'text');
+      label.setAttribute('class', 'node-label');
+      label.setAttribute('y', 41);
+      label.setAttribute('text-anchor', 'middle');
+      label.setAttribute('font-family', 'JetBrains Mono');
+      label.setAttribute('font-size', '8.5');
+      label.setAttribute('letter-spacing', '1.4');
+      label.setAttribute('font-weight', '500');
+      label.setAttribute('fill', '#B8B0A0');
+      label.textContent = p.label;
+      g.appendChild(label);
+
+      nodesG.appendChild(g);
+      return { p, g, glyph, ring, ringInner, label };
+    });
+
+    const chaosLines = chaosPairs.map(([i, j], idx) => {
+      const path = document.createElementNS(NS, 'path');
+      path.setAttribute('stroke-width', '1.2');
+      path.setAttribute('stroke-dasharray', '3 5');
+      path.setAttribute('opacity', '0.78');
+      path.setAttribute('fill', 'none');
+      const c1Off = { x: (rand(idx, 11) - 0.5) * 280, y: (rand(idx, 12) - 0.5) * 280 };
+      const c2Off = { x: (rand(idx, 13) - 0.5) * 280, y: (rand(idx, 14) - 0.5) * 280 };
+      chaosG.appendChild(path);
+      return { i, j, path, c1Off, c2Off };
+    });
+
+    const orderLines = platforms.map((p, i) => {
+      const path = document.createElementNS(NS, 'path');
+      path.setAttribute('stroke-width', '0.9');
+      path.setAttribute('opacity', '0.55');
+      path.setAttribute('fill', 'none');
+      orderG.appendChild(path);
+      return { i, path };
+    });
+
+    // ====== ANIMATION ======
+    // Cycle is 12s. Hold the synced (clarity) state for the longest beat — that's
+    // the "aha" moment we want viewers to absorb before chaos returns.
+    const cycleMs = 12000;
+    const phases = { holdChaos: 0.07, transitionToOrder: 0.20, holdOrder: 0.48, transitionToChaos: 0.25 };
+
+    function easeInOut(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+    function lerp(a, b, t) { return a + (b - a) * t; }
+
+    // Optional debug freeze: #freeze=chaos | mid | order
+    const _hash = (location.hash.match(/freeze=(\w+)/) || [])[1];
+    const freezeMap = { chaos: 0, mid: 0.5, order: 1 };
+    const frozenAt = _hash in freezeMap ? freezeMap[_hash] : null;
+
+    const startT = performance.now();
+
+    const statusDot   = document.getElementById('status-dot');
+    const statusText  = document.getElementById('status-text');
+    const progressFill = document.getElementById('progress-fill');
+    const progressKnob = document.getElementById('progress-knob');
+    const counter     = document.getElementById('map-counter');
+    const hubPulse1   = document.getElementById('hub-pulse-1');
+    const hubPulse2   = document.getElementById('hub-pulse-2');
+
+    function tick(now) {
+      const elapsed = now - startT;
+      const t = (elapsed % cycleMs) / cycleMs;
+
+      let progress;
+      if (frozenAt !== null) {
+        progress = frozenAt;
+      } else if (t < phases.holdChaos) {
+        progress = 0;
+      } else if (t < phases.holdChaos + phases.transitionToOrder) {
+        progress = easeInOut((t - phases.holdChaos) / phases.transitionToOrder);
+      } else if (t < phases.holdChaos + phases.transitionToOrder + phases.holdOrder) {
+        progress = 1;
+      } else {
+        const local = (t - phases.holdChaos - phases.transitionToOrder - phases.holdOrder) / phases.transitionToChaos;
+        progress = 1 - easeInOut(local);
+      }
+
+      // nodes
+      nodeEls.forEach(({ p, g, glyph, ring, ringInner, label }, i) => {
+        const x = lerp(p.chaos.x, p.order.x, progress);
+        const y = lerp(p.chaos.y, p.order.y, progress);
+        const bobAmp = 4 * (1 - progress);
+        const bx = Math.sin(now / 800 + i * 1.7) * bobAmp;
+        const by = Math.cos(now / 1100 + i * 2.3) * bobAmp;
+        g.setAttribute('transform', `translate(${x + bx}, ${y + by})`);
+
+        if (progress > 0.55) {
+          ring.setAttribute('stroke', '#CCFF33');
+          ring.setAttribute('stroke-width', '1.4');
+          ringInner.setAttribute('stroke', '#5A6E1F');
+          label.setAttribute('fill', '#EDE6D3');
+        } else {
+          ring.setAttribute('stroke', '#3A3527');
+          ring.setAttribute('stroke-width', '1');
+          ringInner.setAttribute('stroke', '#2A2620');
+          label.setAttribute('fill', '#B8B0A0');
+        }
+      });
+
+      // chaos lines
+      const chaosOpacity = Math.pow(1 - progress, 1.3);
+      chaosG.setAttribute('opacity', chaosOpacity);
+      chaosLines.forEach(({ i, j, path, c1Off, c2Off }) => {
+        const a = nodeEls[i].p, b = nodeEls[j].p;
+        const ax = lerp(a.chaos.x, a.order.x, progress);
+        const ay = lerp(a.chaos.y, a.order.y, progress);
+        const bx = lerp(b.chaos.x, b.order.x, progress);
+        const by = lerp(b.chaos.y, b.order.y, progress);
+        const mx = (ax + bx) / 2, my = (ay + by) / 2;
+        const k = (1 - progress);
+        const c1x = mx + c1Off.x * k;
+        const c1y = my + c1Off.y * k;
+        const c2x = mx + c2Off.x * k;
+        const c2y = my + c2Off.y * k;
+        path.setAttribute('d', `M${ax},${ay} C${c1x},${c1y} ${c2x},${c2y} ${bx},${by}`);
+      });
+
+      // order lines
+      const orderOpacity = Math.pow(progress, 1.4) * 0.85;
+      orderG.setAttribute('opacity', orderOpacity);
+      orderLines.forEach(({ i, path }) => {
+        const p = nodeEls[i].p;
+        const x = lerp(p.chaos.x, p.order.x, progress);
+        const y = lerp(p.chaos.y, p.order.y, progress);
+        // gentle in-curving toward center
+        const mx = lerp(x, cx, 0.55);
+        const my = lerp(y, cy, 0.55);
+        // perpendicular nudge for fan-curve, fading as we synchronize
+        const dx = cx - x, dy = cy - y;
+        const len = Math.hypot(dx, dy) || 1;
+        const px = -dy / len, py = dx / len;
+        const nudge = 22 * Math.sin(p.angle * 2);
+        const cxc = mx + px * nudge;
+        const cyc = my + py * nudge;
+        path.setAttribute('d', `M${x},${y} Q${cxc},${cyc} ${cx},${cy}`);
+      });
+
+      // status pill
+      if (progress < 0.22) {
+        statusDot.style.background = 'var(--amber)';
+        statusText.textContent = 'STATUS · TANGLED';
+      } else if (progress < 0.78) {
+        statusDot.style.background = 'var(--cream)';
+        statusText.textContent = 'STATUS · RESOLVING';
+      } else {
+        statusDot.style.background = 'var(--lime)';
+        statusText.textContent = 'STATUS · SYNCED';
+      }
+
+      const pct = (progress * 100).toFixed(1);
+      progressFill.style.width = pct + '%';
+      progressKnob.style.left  = pct + '%';
+      counter.textContent = `${platforms.length} NODES · ${Math.round(progress * platforms.length)} SYNCED`;
+
+      // hub pulse rings (only when synced)
+      if (progress > 0.65) {
+        const ringT = (elapsed % 2200) / 2200;
+        const r2T = (ringT + 0.5) % 1;
+        hubPulse1.setAttribute('r', 38 + ringT * 60);
+        hubPulse1.setAttribute('opacity', (1 - ringT) * 0.55 * progress);
+        hubPulse2.setAttribute('r', 38 + r2T * 60);
+        hubPulse2.setAttribute('opacity', (1 - r2T) * 0.55 * progress);
+      } else {
+        hubPulse1.setAttribute('opacity', 0);
+        hubPulse2.setAttribute('opacity', 0);
+      }
+
+      requestAnimationFrame(tick);
+    }
+
+    requestAnimationFrame(tick);
+
+    // ====== Marquee content ======
+    const tags = ['SHOPIFY','BOL.COM','AMAZON','TEMU','NOON','TIKTOK SHOP','KLAVIYO','HUBSPOT','STRIPE','MOLLIE','LINNWORKS','DHL','POSTNL','META ADS','GOOGLE ADS','GMAIL','GOOGLE SHEETS','GOOGLE DRIVE','CALENDLY','WHATSAPP','TELEGRAM','SLACK','NOTION','SUPABASE','ZAPIER','MAKE','N8N','QUICKBOOKS','EXACT','DOCUSIGN'];
+    function buildMarquee(el) {
+      el.innerHTML = '';
+      tags.forEach((tag, i) => {
+        const s = document.createElement('span');
+        s.textContent = tag;
+        el.appendChild(s);
+        const sep = document.createElement('span');
+        sep.textContent = i % 3 === 0 ? '◇' : '·';
+        sep.style.color = i % 3 === 0 ? 'var(--lime)' : 'var(--muted)';
+        el.appendChild(sep);
+      });
+    }
+    buildMarquee(document.getElementById('mq-1'));
+    buildMarquee(document.getElementById('mq-2'));
+  })();
+  </script>
+</body>
+</html>

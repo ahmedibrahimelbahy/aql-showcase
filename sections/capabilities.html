@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AQL — Capabilities · Four kinds of work</title>
+  <meta name="description" content="Dashboards, CRMs, integrations and automation — the four shapes every AQL engagement takes." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0B0A08;
+      --bg-elevated: #15130F;
+      --bg-floating: #1F1B14;
+      --border: #2A2620;
+      --border-bright: #3A3527;
+      --cream: #EDE6D3;
+      --cream-dim: #B8B0A0;
+      --muted: #6B6557;
+      --lime: #CCFF33;
+      --lime-dim: #A8D628;
+      --amber: #E97451;
+      --danger: #FF4538;
+    }
+    * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    html, body { background: var(--bg); }
+    body {
+      color: var(--cream);
+      font-family: 'Manrope', sans-serif;
+      overflow-x: hidden;
+    }
+    .font-serif-italic { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; }
+    .font-serif { font-family: 'Instrument Serif', serif; font-weight: 400; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Grain overlay */
+    .grain::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+      opacity: 0.08; mix-blend-mode: overlay; z-index: 100;
+    }
+
+    /* Faint tech grid */
+    .tech-grid {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(237, 230, 211, 0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(237, 230, 211, 0.022) 1px, transparent 1px);
+      background-size: 80px 80px;
+      mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black, transparent 90%);
+    }
+
+    /* Atmospheric glow */
+    .caps-glow {
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 60% 45% at 22% 18%, rgba(204, 255, 51, 0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 55% 40% at 85% 80%, rgba(233, 116, 81, 0.05) 0%, transparent 60%),
+        radial-gradient(ellipse 90% 50% at 50% 0%, rgba(237, 230, 211, 0.03) 0%, transparent 60%);
+    }
+
+    .tracking-spec { letter-spacing: 0.16em; }
+    .tracking-display { letter-spacing: -0.035em; }
+
+    /* Highlight */
+    .lime-underline {
+      background-image: linear-gradient(transparent 76%, rgba(204, 255, 51, 0.55) 76%, rgba(204, 255, 51, 0.55) 92%, transparent 92%);
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      padding: 0 0.04em;
+    }
+
+    /* Map corner brackets */
+    .corner {
+      position: absolute; width: 14px; height: 14px;
+      pointer-events: none;
+    }
+    .corner::before, .corner::after {
+      content: ''; position: absolute; background: var(--cream-dim); opacity: 0.45;
+      transition: background 0.4s ease, opacity 0.4s ease;
+    }
+    .corner.tl { top: 12px; left: 12px; }
+    .corner.tl::before { top: 0; left: 0; width: 14px; height: 1px; }
+    .corner.tl::after  { top: 0; left: 0; width: 1px; height: 14px; }
+    .corner.tr { top: 12px; right: 12px; }
+    .corner.tr::before { top: 0; right: 0; width: 14px; height: 1px; }
+    .corner.tr::after  { top: 0; right: 0; width: 1px; height: 14px; }
+    .corner.bl { bottom: 12px; left: 12px; }
+    .corner.bl::before { bottom: 0; left: 0; width: 14px; height: 1px; }
+    .corner.bl::after  { bottom: 0; left: 0; width: 1px; height: 14px; }
+    .corner.br { bottom: 12px; right: 12px; }
+    .corner.br::before { bottom: 0; right: 0; width: 14px; height: 1px; }
+    .corner.br::after  { bottom: 0; right: 0; width: 1px; height: 14px; }
+
+    /* Capability card */
+    .cap-card {
+      position: relative;
+      background: linear-gradient(180deg, #15130F 0%, #110F0C 100%);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 2.1rem 2.1rem 1.9rem;
+      min-height: 420px;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      transition: border-color 0.45s cubic-bezier(0.2, 0.8, 0.25, 1),
+                  transform 0.55s cubic-bezier(0.2, 0.8, 0.25, 1),
+                  background 0.45s ease;
+    }
+    .cap-card::before {
+      /* subtle inner top-edge highlight */
+      content: '';
+      position: absolute; left: 12%; right: 12%; top: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(237, 230, 211, 0.18), transparent);
+    }
+    /* Hover only on devices with a real pointer — touch devices skip these */
+    @media (hover: hover) {
+      .cap-card:hover {
+        border-color: var(--cream);
+        transform: translateY(-2px);
+      }
+      .cap-card:hover .corner::before,
+      .cap-card:hover .corner::after {
+        background: var(--cream); opacity: 0.85;
+      }
+      .cap-card:hover .cap-visual { opacity: 1; }
+      .cap-card:hover .head-accent {
+        transform: scaleX(1);
+      }
+      .cap-card:hover .cap-link-bar {
+        transform: scaleX(2.2);
+      }
+      .cap-card:hover .cap-chip { border-color: rgba(237, 230, 211, 0.45); color: var(--cream); }
+      .cap-link:hover { color: var(--cream); }
+    }
+    /* On touch: keep static visuals visible at full intensity and accent line drawn */
+    @media (hover: none) {
+      .cap-visual { opacity: 1; }
+      .head-accent { transform: scaleX(1); }
+      .hover-hint { display: none; }
+    }
+
+    .cap-kicker {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--cream-dim);
+      display: inline-flex; align-items: center; gap: 0.55rem;
+    }
+    .cap-kicker .num-dot {
+      display: inline-block; width: 5px; height: 5px; border-radius: 50%;
+      background: var(--lime);
+      box-shadow: 0 0 8px var(--lime);
+    }
+
+    .cap-headline {
+      font-family: 'Instrument Serif', serif;
+      font-weight: 400;
+      font-size: clamp(1.6rem, 2.6vw, 2.4rem);
+      line-height: 1.05;
+      letter-spacing: -0.025em;
+      color: var(--cream);
+      margin-top: 0.85rem;
+      max-width: 16ch;
+    }
+    .head-accent {
+      display: block; height: 1px; width: 38px;
+      background: var(--lime);
+      margin-top: 0.75rem;
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.25, 1);
+    }
+
+    .cap-body {
+      color: var(--cream-dim);
+      font-size: 0.95rem;
+      line-height: 1.55;
+      margin-top: 1.1rem;
+      max-width: 38ch;
+    }
+
+    .cap-chips {
+      display: flex; flex-wrap: wrap; gap: 0.4rem;
+      margin-top: 1.25rem;
+    }
+    .cap-chip {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.3rem 0.7rem;
+      border: 1px solid rgba(184, 176, 160, 0.30);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px; letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--cream-dim);
+      background: rgba(11, 10, 8, 0.4);
+      transition: border-color 0.25s ease, color 0.25s ease;
+    }
+    .cap-chip::before {
+      content: ''; width: 4px; height: 4px; border-radius: 50%;
+      background: var(--lime);
+      box-shadow: 0 0 5px rgba(204, 255, 51, 0.6);
+    }
+    .cap-link {
+      margin-top: auto;
+      padding-top: 1.4rem;
+      display: inline-flex; align-items: center; gap: 0.7rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px; letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--cream-dim);
+      transition: color 0.3s ease;
+    }
+    .cap-link-bar {
+      display: inline-block; width: 18px; height: 1px;
+      background: currentColor;
+      transform-origin: left;
+      transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.25, 1);
+    }
+
+    .cap-visual {
+      position: absolute; top: 1.6rem; right: 1.7rem;
+      opacity: 0.85;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+
+    /* Card stagger reveal */
+    .card-reveal {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity 0.85s cubic-bezier(0.2, 0.8, 0.25, 1),
+                  transform 0.85s cubic-bezier(0.2, 0.8, 0.25, 1);
+    }
+    .card-reveal.in {
+      opacity: 1; transform: translateY(0);
+    }
+
+    /* Header reveal */
+    .head-reveal {
+      opacity: 0; transform: translateY(14px);
+      transition: opacity 1s cubic-bezier(0.2, 0.8, 0.25, 1),
+                  transform 1s cubic-bezier(0.2, 0.8, 0.25, 1);
+    }
+    .head-reveal.in { opacity: 1; transform: translateY(0); }
+
+    /* Bottom caption */
+    .caption-pill {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.42rem 0.85rem;
+      background: rgba(11, 10, 8, 0.55);
+      border: 1px solid var(--border-bright);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--cream);
+    }
+    .caption-pill .lime-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--lime);
+      box-shadow: 0 0 6px var(--lime);
+    }
+
+    /* Animated packets / orbits subtle motion (visuals) */
+    @keyframes packetFlow {
+      0% { transform: translateX(0); opacity: 0; }
+      15% { opacity: 1; }
+      85% { opacity: 1; }
+      100% { transform: translateX(110px); opacity: 0; }
+    }
+    .packet { animation: packetFlow 2.4s linear infinite; }
+
+    @keyframes orbit-spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    .orbit-rotate {
+      transform-origin: center;
+      animation: orbit-spin 22s linear infinite;
+    }
+
+    @keyframes barGrow {
+      0%, 100% { transform: scaleY(0.55); }
+      50%      { transform: scaleY(1); }
+    }
+    .kpi-bar { transform-origin: bottom; animation: barGrow 2.6s ease-in-out infinite; }
+
+    @keyframes msgDrop {
+      0% { transform: translateY(-6px); opacity: 0; }
+      18%, 82% { opacity: 1; }
+      100% { transform: translateY(0); opacity: 0; }
+    }
+    .msg-bubble { animation: msgDrop 3s ease-in-out infinite; }
+
+    /* iOS Safari: dvh, safe-area, sane min height */
+    @supports (height: 100dvh) {
+      body { min-height: 100dvh; }
+    }
+    @supports (padding: env(safe-area-inset-bottom)) {
+      body { padding-bottom: env(safe-area-inset-bottom); }
+    }
+
+    /* Tap target: every clickable >= 44pt on touch */
+    .cap-link {
+      min-height: 44px;
+      align-items: center;
+    }
+
+    /* ============== Mobile <768px ============== */
+    @media (max-width: 767px) {
+      /* Tailwind's `grid-cols-12 gap-8` reserves 11×32px = 352px just for
+         column gaps, forcing horizontal overflow on 320px screens. Collapse
+         the header grid to a simple stack on mobile. Tailwind's .grid /
+         .gap-8 classes are injected after this <style>, so we need higher
+         specificity to win the cascade. */
+      div.caps-header-grid.caps-header-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1.4rem;
+        margin-bottom: 2.5rem;
+      }
+      /* Same risk on the cards grid: 1×4 stack on mobile, no gap-overflow. */
+      div.caps-cards-grid.caps-cards-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1.1rem;
+      }
+      .cap-card {
+        min-height: 0;                 /* let content dictate height */
+        padding: 1.5rem 1.4rem 1.4rem;  /* tighter inner padding */
+        border-radius: 18px;
+      }
+      /* Move SVG visual into the flow on mobile so it never collides
+         with the kicker / serif headline. Place it between body and chips
+         by giving everything explicit flex order. Shrink ~78% to fit. */
+      .cap-card > .cap-kicker   { order: 1; }
+      .cap-card > .cap-headline { order: 2; }
+      .cap-card > .head-accent  { order: 3; }
+      .cap-card > .cap-body     { order: 4; }
+      .cap-visual {
+        position: static;
+        order: 5;
+        align-self: center;
+        margin-top: 1.2rem;
+        margin-bottom: 0.2rem;
+        opacity: 1;
+        transform: scale(0.78);
+        transform-origin: center;
+      }
+      .cap-card > .cap-chips    { order: 6; }
+      .cap-card > .cap-link     { order: 7; }
+      .cap-headline {
+        font-size: clamp(1.55rem, 6.6vw, 1.95rem);
+        max-width: 100%;
+        margin-top: 0.55rem;
+      }
+      .cap-body {
+        font-size: 0.92rem;
+        max-width: 100%;
+      }
+      .cap-chips { gap: 0.35rem; margin-top: 1rem; }
+      .cap-chip { padding: 0.32rem 0.62rem; font-size: 9px; }
+      .cap-link {
+        padding-top: 1.1rem;
+        font-size: 10px;
+      }
+      /* Section header: tighter scale so "One operating philosophy." doesn't
+         break mid-word at narrow widths. Higher specificity beats Tailwind JIT. */
+      h2.caps-headline {
+        font-size: clamp(1.85rem, 7.8vw, 2.6rem);
+        line-height: 1.06;
+      }
+      /* Slightly tighten section vertical padding */
+      .caps-shell { padding-top: 3rem; padding-bottom: 1.5rem; }
+    }
+
+    /* ============== iPhone SE & narrow <=375px ============== */
+    @media (max-width: 375px) {
+      .cap-card { padding: 1.3rem 1.2rem 1.25rem; }
+      h3.cap-headline { font-size: clamp(1.45rem, 7vw, 1.8rem); }
+      .cap-visual { transform: scale(0.7); margin-top: 1rem; }
+      h2.caps-headline { font-size: 1.55rem; line-height: 1.06; letter-spacing: -0.02em; }
+      .cap-chips { gap: 0.3rem; }
+    }
+
+    /* ====================================================== */
+    /* ===========  EXPANDED DETAIL PANEL  ================== */
+    /* ====================================================== */
+    .cap-card { cursor: pointer; }
+    .cap-card:focus-visible { outline: 2px solid var(--lime); outline-offset: 4px; }
+    .cap-card.is-card-active {
+      border-color: var(--lime) !important;
+      transform: scale(1.02);
+      background: linear-gradient(180deg, #1a1812 0%, #141108 100%);
+      box-shadow:
+        0 0 0 1px rgba(204, 255, 51, 0.32),
+        0 24px 48px -16px rgba(204, 255, 51, 0.08),
+        0 8px 24px -8px rgba(0, 0, 0, 0.6);
+    }
+    .cap-card.is-card-active .corner::before,
+    .cap-card.is-card-active .corner::after {
+      background: var(--lime); opacity: 0.95;
+    }
+    .cap-card.is-card-active .head-accent { transform: scaleX(1); }
+    .cap-card.is-card-active .cap-visual { opacity: 1; }
+    .cap-card.is-card-active .cap-link { color: var(--lime); }
+    .cap-card.is-card-active .cap-link-bar { transform: scaleX(2.2); }
+
+    /* Panel container */
+    .cap-detail-shell {
+      margin-top: 0;
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transition: max-height 0.5s cubic-bezier(0.2, 0.85, 0.25, 1),
+                  opacity 0.38s cubic-bezier(0.2, 0.85, 0.25, 1),
+                  margin-top 0.5s cubic-bezier(0.2, 0.85, 0.25, 1);
+      will-change: max-height, opacity;
+    }
+    .cap-detail-shell.is-open {
+      max-height: 1800px;
+      opacity: 1;
+      margin-top: 1.6rem;
+    }
+
+    .cap-detail {
+      position: relative;
+      background: linear-gradient(180deg, #15130F 0%, #0F0D0A 100%);
+      border: 1px solid var(--border-bright);
+      border-radius: 24px;
+      padding: 2.4rem 2.2rem 2.2rem;
+      overflow: hidden;
+      transform: translateY(14px);
+      opacity: 0;
+      transition: transform 0.38s cubic-bezier(0.2, 0.85, 0.25, 1),
+                  opacity 0.32s cubic-bezier(0.2, 0.85, 0.25, 1);
+    }
+    .cap-detail-shell.is-open .cap-detail {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .cap-detail.is-swapping {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+
+    /* Panel ambient layers */
+    .cap-detail::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 60% 40% at 12% 0%, rgba(204, 255, 51, 0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 35% at 92% 100%, rgba(233, 116, 81, 0.05) 0%, transparent 60%);
+    }
+    .cap-detail::after {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(237, 230, 211, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(237, 230, 211, 0.025) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse 60% 60% at 50% 30%, black, transparent 80%);
+    }
+    .cap-detail > * { position: relative; z-index: 1; }
+
+    /* Lime accent rail along the top */
+    .cap-detail-rail {
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(204, 255, 51, 0.0) 8%,
+        rgba(204, 255, 51, 0.85) 22%,
+        rgba(204, 255, 51, 0.85) 78%,
+        rgba(204, 255, 51, 0.0) 92%,
+        transparent 100%);
+      z-index: 2;
+    }
+
+    .cap-detail-kicker {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--cream-dim);
+      display: inline-flex; align-items: center; gap: 0.65rem;
+    }
+    .cap-detail-kicker .pulse-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--lime);
+      box-shadow: 0 0 10px var(--lime);
+      animation: pulseDot 1.8s ease-in-out infinite;
+    }
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    .cap-detail-headline {
+      font-family: 'Instrument Serif', serif;
+      font-weight: 400;
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      line-height: 1.04;
+      letter-spacing: -0.03em;
+      color: var(--cream);
+      margin-top: 0.85rem;
+    }
+    .cap-detail-subhead {
+      color: var(--cream-dim);
+      font-size: 1.02rem;
+      line-height: 1.55;
+      margin-top: 0.7rem;
+      max-width: 56ch;
+    }
+
+    /* Section divider */
+    .cap-detail-divider {
+      display: flex; align-items: center; gap: 0.8rem;
+      margin: 2.2rem 0 1.4rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px; letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .cap-detail-divider::before {
+      content: ''; flex: 0 0 28px; height: 1px; background: var(--border-bright);
+    }
+    .cap-detail-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border-bright);
+    }
+
+    /* Three projects row */
+    .cap-projects {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+    @media (max-width: 900px) {
+      .cap-projects { grid-template-columns: 1fr; gap: 0.85rem; }
+    }
+    .cap-project {
+      position: relative;
+      background: rgba(11, 10, 8, 0.55);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.4rem 1.3rem 1.3rem;
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.3s ease, transform 0.3s cubic-bezier(0.2, 0.85, 0.25, 1);
+    }
+    @media (hover: hover) {
+      .cap-project:hover {
+        border-color: rgba(204, 255, 51, 0.35);
+        transform: translateY(-2px);
+      }
+    }
+    .cap-project-codename {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--cream);
+      display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .cap-project-codename::before {
+      content: ''; width: 4px; height: 4px; border-radius: 50%;
+      background: var(--lime);
+      box-shadow: 0 0 6px rgba(204, 255, 51, 0.55);
+    }
+    .cap-project-desc {
+      color: var(--cream-dim);
+      font-size: 0.92rem;
+      line-height: 1.5;
+      margin-top: 0.7rem;
+      min-height: 2.7em;
+    }
+    .cap-project-stack {
+      display: flex; flex-wrap: wrap; gap: 0.32rem;
+      margin-top: 0.95rem;
+    }
+    .cap-mini-chip {
+      padding: 0.22rem 0.55rem;
+      border: 1px solid rgba(184, 176, 160, 0.22);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8.5px; letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--cream-dim);
+      background: rgba(11, 10, 8, 0.5);
+    }
+    .cap-project-metric {
+      margin-top: 1.1rem;
+      padding-top: 1rem;
+      border-top: 1px dashed var(--border-bright);
+    }
+    .cap-project-metric-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8.5px; letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .cap-project-metric-value {
+      font-family: 'Instrument Serif', serif;
+      font-style: italic;
+      font-size: 1.55rem;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      color: var(--lime);
+      margin-top: 0.3rem;
+    }
+
+    /* Tool chip wall */
+    .cap-tools-wrap {
+      display: flex; flex-wrap: wrap; gap: 0.45rem;
+    }
+    .cap-tool-chip {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.36rem 0.78rem;
+      border: 1px solid rgba(184, 176, 160, 0.28);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px; letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--cream-dim);
+      background: rgba(11, 10, 8, 0.4);
+      transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease;
+    }
+    .cap-tool-chip::before {
+      content: ''; width: 4px; height: 4px; border-radius: 50%;
+      background: var(--cream-dim);
+      transition: background 0.25s ease, box-shadow 0.25s ease;
+    }
+    @media (hover: hover) {
+      .cap-tool-chip:hover {
+        border-color: rgba(204, 255, 51, 0.5);
+        color: var(--cream);
+        background: rgba(204, 255, 51, 0.04);
+      }
+      .cap-tool-chip:hover::before {
+        background: var(--lime);
+        box-shadow: 0 0 6px rgba(204, 255, 51, 0.6);
+      }
+    }
+
+    /* Bottom CTAs */
+    .cap-detail-cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.85rem;
+      margin-top: 2.2rem;
+      padding-top: 1.8rem;
+      border-top: 1px solid var(--border);
+    }
+    .cap-btn-lime, .cap-btn-ghost {
+      display: inline-flex; align-items: center; gap: 0.7rem;
+      padding: 0.85rem 1.3rem;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px; letter-spacing: 0.16em;
+      text-transform: uppercase;
+      min-height: 44px;
+      transition: transform 0.3s cubic-bezier(0.2, 0.85, 0.25, 1),
+                  background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+    .cap-btn-lime {
+      background: var(--lime);
+      color: #0B0A08;
+      border: 1px solid var(--lime);
+      font-weight: 600;
+      box-shadow: 0 8px 24px -8px rgba(204, 255, 51, 0.4);
+    }
+    .cap-btn-lime:hover { transform: translateY(-1px); background: #d8ff4d; }
+    .cap-btn-lime:active { transform: translateY(0); }
+    .cap-btn-lime:focus-visible { outline: 2px solid var(--cream); outline-offset: 3px; }
+    .cap-btn-ghost {
+      background: transparent;
+      color: var(--cream);
+      border: 1px solid var(--border-bright);
+    }
+    .cap-btn-ghost:hover {
+      border-color: var(--cream);
+      background: rgba(237, 230, 211, 0.04);
+    }
+    .cap-btn-ghost:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
+
+    .cap-detail-close {
+      margin-left: auto;
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      padding: 0.55rem 0.85rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px; letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--cream-dim);
+      cursor: pointer;
+      transition: color 0.25s ease, border-color 0.25s ease;
+    }
+    .cap-detail-close:hover { color: var(--cream); border-color: var(--cream-dim); }
+    .cap-detail-close:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
+    .cap-detail-close .esc-key {
+      display: inline-block;
+      padding: 0.1rem 0.35rem;
+      border: 1px solid var(--border-bright);
+      border-radius: 4px;
+      font-size: 8.5px;
+      color: var(--cream-dim);
+    }
+
+    /* Mobile tweaks for the detail panel */
+    @media (max-width: 767px) {
+      .cap-detail { padding: 1.6rem 1.3rem 1.5rem; border-radius: 18px; }
+      .cap-detail-shell.is-open { margin-top: 1.2rem; }
+      .cap-detail-headline { font-size: clamp(1.7rem, 7.5vw, 2.2rem); }
+      .cap-detail-subhead { font-size: 0.94rem; }
+      .cap-projects { gap: 0.75rem; }
+      .cap-project { padding: 1.15rem 1.1rem 1.1rem; border-radius: 14px; }
+      .cap-project-metric-value { font-size: 1.35rem; }
+      .cap-detail-cta-row { gap: 0.6rem; }
+      .cap-btn-lime, .cap-btn-ghost {
+        flex: 1 1 100%;
+        justify-content: center;
+        padding: 0.8rem 1rem;
+      }
+      .cap-detail-close { margin-left: 0; flex: 0 0 auto; }
+    }
+
+    /* Project concept diagram framing */
+    .cap-project-diagram {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 7;
+      border: 1px dashed var(--border-bright);
+      border-radius: 10px;
+      background:
+        radial-gradient(ellipse 70% 60% at 50% 50%, rgba(204, 255, 51, 0.04) 0%, transparent 70%),
+        rgba(11, 10, 8, 0.55);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+    .cap-project-diagram svg { width: 100%; height: 100%; display: block; }
+    .cap-project-diagram::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(237, 230, 211, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(237, 230, 211, 0.025) 1px, transparent 1px);
+      background-size: 18px 18px;
+      mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black, transparent 90%);
+    }
+    .cap-project-diagram > svg { position: relative; z-index: 1; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .cap-detail-shell, .cap-detail, .cap-card,
+      .cap-project, .cap-btn-lime, .cap-btn-ghost {
+        transition: none !important;
+      }
+      .cap-detail-kicker .pulse-dot { animation: none; }
+    }
+  </style>
+</head>
+<body class="grain min-h-screen relative">
+  <div class="tech-grid"></div>
+
+  <!-- ============== CAPABILITIES ============== -->
+  <section id="capabilitiesSection" class="relative" data-active-cap="">
+    <div class="caps-glow"></div>
+
+    <div class="caps-shell relative z-10 max-w-[1440px] mx-auto px-6 lg:px-12 pt-20 lg:pt-24 pb-10">
+
+      <!-- Section header -->
+      <div class="caps-header-grid grid grid-cols-12 gap-x-0 gap-y-8 lg:gap-10 mb-14 lg:mb-16">
+        <div class="col-span-12 lg:col-span-7">
+          <div class="head-reveal flex items-center gap-3 font-mono text-[10.5px] tracking-spec uppercase text-[var(--cream-dim)] mb-6">
+            <span class="block w-7 h-px bg-[var(--cream-dim)]"></span>
+            <span>Fig.02 / What we build</span>
+          </div>
+
+          <h2 class="caps-headline head-reveal font-serif text-[clamp(2.2rem,4.4vw,3.8rem)] leading-[1.02] tracking-display text-[var(--cream)]" style="transition-delay: 0.12s;">
+            Four kinds of work.
+            <span class="font-serif-italic">One <span class="lime-underline">operating</span> philosophy.</span>
+          </h2>
+        </div>
+
+        <div class="col-span-12 lg:col-span-5 lg:pt-2 flex lg:justify-end">
+          <p class="head-reveal text-[var(--cream-dim)] text-[1rem] leading-[1.65] max-w-[36ch]" style="transition-delay: 0.24s;">
+            Brands hire us for one thing and stay for the rest. The work spans four shapes — every project sits inside this map.
+          </p>
+        </div>
+      </div>
+
+      <!-- 2x2 Grid (collapses to 1×4 stack <768px via .caps-cards-grid) -->
+      <div class="caps-cards-grid grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6">
+
+        <!-- ============ CARD 1 / DASHBOARDS ============ -->
+        <article class="card-reveal cap-card" data-idx="0" data-cap-id="01" tabindex="0" role="button" aria-expanded="false" aria-controls="capDetail">
+          <span class="corner tl" aria-hidden="true"></span>
+          <span class="corner tr" aria-hidden="true"></span>
+          <span class="corner bl" aria-hidden="true"></span>
+          <span class="corner br" aria-hidden="true"></span>
+
+          <!-- Visual: KPI tiles + sparkline -->
+          <div class="cap-visual">
+            <svg width="160" height="108" viewBox="0 0 160 108" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <defs>
+                <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#CCFF33" stop-opacity="0.45" />
+                  <stop offset="100%" stop-color="#CCFF33" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+              <!-- Sparkline area -->
+              <g transform="translate(0,46)">
+                <path d="M0,40 L14,28 L28,32 L42,18 L56,22 L70,10 L84,14 L98,4 L112,8 L126,2 L140,6 L154,0 L154,52 L0,52 Z" fill="url(#sparkFill)"/>
+                <path d="M0,40 L14,28 L28,32 L42,18 L56,22 L70,10 L84,14 L98,4 L112,8 L126,2 L140,6 L154,0" stroke="#CCFF33" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="154" cy="0" r="2.2" fill="#CCFF33"/>
+                <circle cx="154" cy="0" r="4.5" fill="none" stroke="#CCFF33" stroke-width="0.6" opacity="0.5"/>
+              </g>
+              <!-- KPI tile 1 -->
+              <g transform="translate(0,0)">
+                <rect x="0" y="0" width="46" height="34" rx="5" fill="#0B0A08" stroke="#3A3527" stroke-width="0.6"/>
+                <text x="5" y="11" font-family="JetBrains Mono" font-size="5.2" letter-spacing="0.6" fill="#6B6557">GMV</text>
+                <text x="5" y="24" font-family="Instrument Serif" font-style="italic" font-size="13" fill="#EDE6D3">€48M</text>
+                <rect x="5" y="28" width="11" height="2" fill="#CCFF33" class="kpi-bar"/>
+              </g>
+              <!-- KPI tile 2 -->
+              <g transform="translate(54,0)">
+                <rect x="0" y="0" width="46" height="34" rx="5" fill="#0B0A08" stroke="#3A3527" stroke-width="0.6"/>
+                <text x="5" y="11" font-family="JetBrains Mono" font-size="5.2" letter-spacing="0.6" fill="#6B6557">ORDERS</text>
+                <text x="5" y="24" font-family="Instrument Serif" font-style="italic" font-size="13" fill="#EDE6D3">12.4k</text>
+                <rect x="5" y="28" width="14" height="2" fill="#CCFF33" class="kpi-bar" style="animation-delay:0.4s;"/>
+              </g>
+              <!-- KPI tile 3 -->
+              <g transform="translate(108,0)">
+                <rect x="0" y="0" width="46" height="34" rx="5" fill="#0B0A08" stroke="#3A3527" stroke-width="0.6"/>
+                <text x="5" y="11" font-family="JetBrains Mono" font-size="5.2" letter-spacing="0.6" fill="#6B6557">MARGIN</text>
+                <text x="5" y="24" font-family="Instrument Serif" font-style="italic" font-size="13" fill="#EDE6D3">31%</text>
+                <rect x="5" y="28" width="9" height="2" fill="#CCFF33" class="kpi-bar" style="animation-delay:0.8s;"/>
+              </g>
+            </svg>
+          </div>
+
+          <span class="cap-kicker"><span class="num-dot"></span>01 — Dashboards</span>
+          <h3 class="cap-headline">The <span class="font-serif-italic">control</span> room.</h3>
+          <span class="head-accent"></span>
+          <p class="cap-body">
+            Real-time finance, inventory and multi-channel orders pulled from twelve platforms into one operable view. Built so operators can run the whole business from a single screen.
+          </p>
+          <div class="cap-chips">
+            <span class="cap-chip">Shopify</span>
+            <span class="cap-chip">Bol</span>
+            <span class="cap-chip">Amazon</span>
+            <span class="cap-chip">Stripe</span>
+            <span class="cap-chip">Mollie</span>
+            <span class="cap-chip">Linnworks</span>
+          </div>
+          <a href="#cap=01" class="cap-link" data-cap-link>
+            <span class="cap-link-bar"></span>
+            <span data-link-label>↳ See related work</span>
+          </a>
+        </article>
+
+        <!-- ============ CARD 2 / CRMs ============ -->
+        <article class="card-reveal cap-card" data-idx="1" data-cap-id="02" tabindex="0" role="button" aria-expanded="false" aria-controls="capDetail">
+          <span class="corner tl" aria-hidden="true"></span>
+          <span class="corner tr" aria-hidden="true"></span>
+          <span class="corner bl" aria-hidden="true"></span>
+          <span class="corner br" aria-hidden="true"></span>
+
+          <!-- Visual: hub + 3 satellite nodes -->
+          <div class="cap-visual">
+            <svg width="148" height="108" viewBox="0 0 148 108" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <!-- faint dashed orbits -->
+              <g class="orbit-rotate" style="transform-box: fill-box;">
+                <ellipse cx="74" cy="54" rx="62" ry="42" stroke="#3A3527" stroke-width="0.6" stroke-dasharray="2 4" fill="none"/>
+                <ellipse cx="74" cy="54" rx="42" ry="28" stroke="#3A3527" stroke-width="0.5" stroke-dasharray="1 3" fill="none" opacity="0.7"/>
+              </g>
+              <!-- connections -->
+              <g stroke="#CCFF33" stroke-width="0.9" fill="none" opacity="0.85">
+                <line x1="74" y1="54" x2="18" y2="30"/>
+                <line x1="74" y1="54" x2="132" y2="34"/>
+                <line x1="74" y1="54" x2="56" y2="98"/>
+              </g>
+              <!-- hub -->
+              <g transform="translate(74,54)">
+                <circle r="14" fill="#0B0A08" stroke="#CCFF33" stroke-width="1.2"/>
+                <circle r="10" fill="#CCFF33"/>
+                <text y="3" text-anchor="middle" font-family="Instrument Serif" font-style="italic" font-size="8" fill="#0B0A08" font-weight="500">aql</text>
+              </g>
+              <!-- satellites -->
+              <g>
+                <circle cx="18" cy="30" r="6.5" fill="#0B0A08" stroke="#CCFF33" stroke-width="1"/>
+                <circle cx="18" cy="30" r="2.3" fill="#CCFF33"/>
+              </g>
+              <g>
+                <circle cx="132" cy="34" r="6.5" fill="#0B0A08" stroke="#CCFF33" stroke-width="1"/>
+                <circle cx="132" cy="34" r="2.3" fill="#CCFF33"/>
+              </g>
+              <g>
+                <circle cx="56" cy="98" r="6.5" fill="#0B0A08" stroke="#CCFF33" stroke-width="1"/>
+                <circle cx="56" cy="98" r="2.3" fill="#CCFF33"/>
+              </g>
+              <!-- tiny labels -->
+              <text x="18" y="14" text-anchor="middle" font-family="JetBrains Mono" font-size="5.2" letter-spacing="0.6" fill="#6B6557">CLIENT</text>
+              <text x="132" y="18" text-anchor="middle" font-family="JetBrains Mono" font-size="5.2" letter-spacing="0.6" fill="#6B6557">DEAL</text>
+              <text x="56" y="106.5" text-anchor="middle" font-family="JetBrains Mono" font-size="5.2" letter-spacing="0.6" fill="#6B6557">OPS</text>
+            </svg>
+          </div>
+
+          <span class="cap-kicker"><span class="num-dot"></span>02 — CRMs · Internal tools</span>
+          <h3 class="cap-headline">The <span class="font-serif-italic">brain.</span></h3>
+          <span class="head-accent"></span>
+          <p class="cap-body">
+            Custom CRMs and internal portals that hold a team's reasoning. Built when the off-the-shelf option doesn't fit — like Apex Wealth, a wealth-management CRM tuned to its analysts.
+          </p>
+          <div class="cap-chips">
+            <span class="cap-chip">HubSpot</span>
+            <span class="cap-chip">Salesforce</span>
+            <span class="cap-chip">Supabase</span>
+            <span class="cap-chip">Next.js</span>
+            <span class="cap-chip">Notion</span>
+            <span class="cap-chip">Apex Wealth</span>
+          </div>
+          <a href="#cap=02" class="cap-link" data-cap-link>
+            <span class="cap-link-bar"></span>
+            <span data-link-label>↳ See related work</span>
+          </a>
+        </article>
+
+        <!-- ============ CARD 3 / INTEGRATIONS ============ -->
+        <article class="card-reveal cap-card" data-idx="2" data-cap-id="03" tabindex="0" role="button" aria-expanded="false" aria-controls="capDetail">
+          <span class="corner tl" aria-hidden="true"></span>
+          <span class="corner tr" aria-hidden="true"></span>
+          <span class="corner bl" aria-hidden="true"></span>
+          <span class="corner br" aria-hidden="true"></span>
+
+          <!-- Visual: parallel rails with packets -->
+          <div class="cap-visual">
+            <svg width="160" height="100" viewBox="0 0 160 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <!-- endpoints left -->
+              <g>
+                <rect x="0" y="22" width="22" height="14" rx="3" fill="#0B0A08" stroke="#3A3527" stroke-width="0.6"/>
+                <text x="11" y="32" text-anchor="middle" font-family="JetBrains Mono" font-size="5.4" letter-spacing="0.5" fill="#B8B0A0">API</text>
+                <rect x="0" y="64" width="22" height="14" rx="3" fill="#0B0A08" stroke="#3A3527" stroke-width="0.6"/>
+                <text x="11" y="74" text-anchor="middle" font-family="JetBrains Mono" font-size="5.4" letter-spacing="0.5" fill="#B8B0A0">DB</text>
+              </g>
+              <!-- endpoints right -->
+              <g>
+                <rect x="138" y="22" width="22" height="14" rx="3" fill="#0B0A08" stroke="#CCFF33" stroke-width="0.8"/>
+                <text x="149" y="32" text-anchor="middle" font-family="JetBrains Mono" font-size="5.4" letter-spacing="0.5" fill="#EDE6D3">AQL</text>
+                <rect x="138" y="64" width="22" height="14" rx="3" fill="#0B0A08" stroke="#CCFF33" stroke-width="0.8"/>
+                <text x="149" y="74" text-anchor="middle" font-family="JetBrains Mono" font-size="5.4" letter-spacing="0.5" fill="#EDE6D3">CORE</text>
+              </g>
+              <!-- rails -->
+              <line x1="22" y1="29" x2="138" y2="29" stroke="#3A3527" stroke-width="0.8" stroke-dasharray="2 3"/>
+              <line x1="22" y1="71" x2="138" y2="71" stroke="#3A3527" stroke-width="0.8" stroke-dasharray="2 3"/>
+              <!-- packets rail 1 -->
+              <g class="packet" style="animation-delay: 0s;">
+                <circle cx="22" cy="29" r="2.4" fill="#CCFF33"/>
+                <circle cx="22" cy="29" r="4.8" fill="none" stroke="#CCFF33" stroke-width="0.5" opacity="0.5"/>
+              </g>
+              <g class="packet" style="animation-delay: 0.8s;">
+                <circle cx="22" cy="29" r="1.8" fill="#CCFF33" opacity="0.7"/>
+              </g>
+              <g class="packet" style="animation-delay: 1.6s;">
+                <circle cx="22" cy="29" r="1.4" fill="#CCFF33" opacity="0.5"/>
+              </g>
+              <!-- packets rail 2 -->
+              <g class="packet" style="animation-delay: 0.4s;">
+                <circle cx="22" cy="71" r="1.6" fill="#CCFF33" opacity="0.7"/>
+              </g>
+              <g class="packet" style="animation-delay: 1.2s;">
+                <circle cx="22" cy="71" r="2.4" fill="#CCFF33"/>
+                <circle cx="22" cy="71" r="4.8" fill="none" stroke="#CCFF33" stroke-width="0.5" opacity="0.5"/>
+              </g>
+              <g class="packet" style="animation-delay: 2s;">
+                <circle cx="22" cy="71" r="1.4" fill="#CCFF33" opacity="0.5"/>
+              </g>
+              <!-- middle bus indicator -->
+              <text x="80" y="14" text-anchor="middle" font-family="JetBrains Mono" font-size="5.2" letter-spacing="0.7" fill="#6B6557">DATA · IN-SYNC</text>
+              <line x1="68" y1="50" x2="92" y2="50" stroke="#CCFF33" stroke-width="0.8" opacity="0.5"/>
+              <text x="80" y="93" text-anchor="middle" font-family="JetBrains Mono" font-size="5.2" letter-spacing="0.7" fill="#6B6557">AUTH · OK</text>
+            </svg>
+          </div>
+
+          <span class="cap-kicker"><span class="num-dot"></span>03 — Integrations</span>
+          <h3 class="cap-headline">The <span class="font-serif-italic">plumbing.</span></h3>
+          <span class="head-accent"></span>
+          <p class="cap-body">
+            Cross-platform syncs between marketplace APIs, payment processors, shipping carriers and Google Workspace. The unsexy work that makes everything else possible.
+          </p>
+          <div class="cap-chips">
+            <span class="cap-chip">Gmail</span>
+            <span class="cap-chip">Sheets</span>
+            <span class="cap-chip">Drive</span>
+            <span class="cap-chip">Calendly</span>
+            <span class="cap-chip">Zapier</span>
+            <span class="cap-chip">n8n</span>
+          </div>
+          <a href="#cap=03" class="cap-link" data-cap-link>
+            <span class="cap-link-bar"></span>
+            <span data-link-label>↳ See related work</span>
+          </a>
+        </article>
+
+        <!-- ============ CARD 4 / COMMS ============ -->
+        <article class="card-reveal cap-card" data-idx="3" data-cap-id="04" tabindex="0" role="button" aria-expanded="false" aria-controls="capDetail">
+          <span class="corner tl" aria-hidden="true"></span>
+          <span class="corner tr" aria-hidden="true"></span>
+          <span class="corner bl" aria-hidden="true"></span>
+          <span class="corner br" aria-hidden="true"></span>
+
+          <!-- Visual: funnel of message bubbles -->
+          <div class="cap-visual">
+            <svg width="150" height="110" viewBox="0 0 150 110" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <!-- funnel guide lines -->
+              <line x1="14" y1="6" x2="68" y2="78" stroke="#3A3527" stroke-width="0.6" stroke-dasharray="2 3"/>
+              <line x1="136" y1="6" x2="82" y2="78" stroke="#3A3527" stroke-width="0.6" stroke-dasharray="2 3"/>
+              <!-- top row of bubbles -->
+              <g class="msg-bubble" style="animation-delay: 0s;">
+                <rect x="6" y="2" width="22" height="13" rx="6" fill="#0B0A08" stroke="#3A3527" stroke-width="0.6"/>
+                <circle cx="11" cy="8.5" r="1.2" fill="#B8B0A0"/>
+                <circle cx="15" cy="8.5" r="1.2" fill="#B8B0A0"/>
+                <circle cx="19" cy="8.5" r="1.2" fill="#B8B0A0"/>
+              </g>
+              <g class="msg-bubble" style="animation-delay: 0.5s;">
+                <rect x="64" y="2" width="22" height="13" rx="6" fill="#0B0A08" stroke="#3A3527" stroke-width="0.6"/>
+                <circle cx="69" cy="8.5" r="1.2" fill="#B8B0A0"/>
+                <circle cx="73" cy="8.5" r="1.2" fill="#B8B0A0"/>
+                <circle cx="77" cy="8.5" r="1.2" fill="#B8B0A0"/>
+              </g>
+              <g class="msg-bubble" style="animation-delay: 1s;">
+                <rect x="122" y="2" width="22" height="13" rx="6" fill="#0B0A08" stroke="#3A3527" stroke-width="0.6"/>
+                <circle cx="127" cy="8.5" r="1.2" fill="#B8B0A0"/>
+                <circle cx="131" cy="8.5" r="1.2" fill="#B8B0A0"/>
+                <circle cx="135" cy="8.5" r="1.2" fill="#B8B0A0"/>
+              </g>
+              <!-- middle row -->
+              <g class="msg-bubble" style="animation-delay: 0.7s;">
+                <rect x="34" y="34" width="22" height="13" rx="6" fill="#0B0A08" stroke="#3A3527" stroke-width="0.6"/>
+                <circle cx="39" cy="40.5" r="1.2" fill="#B8B0A0"/>
+                <circle cx="43" cy="40.5" r="1.2" fill="#B8B0A0"/>
+                <circle cx="47" cy="40.5" r="1.2" fill="#B8B0A0"/>
+              </g>
+              <g class="msg-bubble" style="animation-delay: 1.3s;">
+                <rect x="94" y="34" width="22" height="13" rx="6" fill="#0B0A08" stroke="#3A3527" stroke-width="0.6"/>
+                <circle cx="99" cy="40.5" r="1.2" fill="#B8B0A0"/>
+                <circle cx="103" cy="40.5" r="1.2" fill="#B8B0A0"/>
+                <circle cx="107" cy="40.5" r="1.2" fill="#B8B0A0"/>
+              </g>
+              <!-- AQL bot in middle bottom -->
+              <g transform="translate(75,68)">
+                <circle r="9" fill="#0B0A08" stroke="#CCFF33" stroke-width="1"/>
+                <circle r="6" fill="#CCFF33"/>
+                <text y="2.5" text-anchor="middle" font-family="Instrument Serif" font-style="italic" font-size="6.5" fill="#0B0A08" font-weight="500">aql</text>
+              </g>
+              <!-- auto-resolved tag -->
+              <g transform="translate(36,90)">
+                <rect x="0" y="0" width="78" height="14" rx="7" fill="#CCFF33"/>
+                <text x="39" y="9.5" text-anchor="middle" font-family="JetBrains Mono" font-size="5.6" letter-spacing="0.7" fill="#0B0A08" font-weight="600">AUTO-RESOLVED</text>
+              </g>
+            </svg>
+          </div>
+
+          <span class="cap-kicker"><span class="num-dot"></span>04 — Comms · Automation</span>
+          <h3 class="cap-headline">The <span class="font-serif-italic">reflexes.</span></h3>
+          <span class="head-accent"></span>
+          <p class="cap-body">
+            WhatsApp and Telegram bots, customer-service flows, and routing rules that catch issues before a human needs to. The automation that keeps the operation calm.
+          </p>
+          <div class="cap-chips">
+            <span class="cap-chip">WhatsApp</span>
+            <span class="cap-chip">Telegram</span>
+            <span class="cap-chip">Slack</span>
+            <span class="cap-chip">Make</span>
+            <span class="cap-chip">n8n</span>
+            <span class="cap-chip">Klaviyo</span>
+          </div>
+          <a href="#cap=04" class="cap-link" data-cap-link>
+            <span class="cap-link-bar"></span>
+            <span data-link-label>↳ See related work</span>
+          </a>
+        </article>
+
+      </div>
+
+      <!-- ============ EXPANDED DETAIL PANEL ============ -->
+      <div id="capDetailShell" class="cap-detail-shell" aria-live="polite" aria-hidden="true">
+        <article id="capDetail" class="cap-detail" role="region" aria-label="Capability details">
+          <span class="cap-detail-rail" aria-hidden="true"></span>
+          <!-- contents injected by JS -->
+        </article>
+      </div>
+
+      <!-- Bottom caption row -->
+      <div class="head-reveal mt-10 lg:mt-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div class="hover-hint flex items-center gap-3 font-mono text-[10px] tracking-spec uppercase text-[var(--cream-dim)]">
+          <span aria-hidden="true">↑</span>
+          <span>Hover any card</span>
+        </div>
+        <div class="caption-pill">
+          <span class="lime-dot"></span>
+          <span>Every engagement mixes 2–4 of these</span>
+        </div>
+        <a href="../sections/case-studies.html" class="font-mono text-[10.5px] tracking-spec uppercase text-[var(--cream)] inline-flex items-center gap-3 group">
+          <span>See it in practice</span>
+          <span class="block w-9 h-px bg-[var(--cream)] transition-transform duration-300 group-hover:scale-x-[1.6]" style="transform-origin: left;"></span>
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+    // Reveal-on-view: header + cards stagger in
+    (() => {
+      const headEls = document.querySelectorAll('.head-reveal');
+      const cardEls = document.querySelectorAll('.card-reveal');
+
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            const el = e.target;
+            if (el.classList.contains('card-reveal')) {
+              const idx = parseInt(el.dataset.idx || '0', 10);
+              el.style.transitionDelay = (0.1 * idx + 0.1) + 's';
+            }
+            el.classList.add('in');
+            io.unobserve(el);
+          }
+        });
+      }, { threshold: 0.18, rootMargin: '0px 0px -40px 0px' });
+
+      headEls.forEach(el => io.observe(el));
+      cardEls.forEach(el => io.observe(el));
+    })();
+
+    /* ============================================================
+       CAPABILITY DETAIL PANEL — click-to-expand interaction
+       ============================================================ */
+    (() => {
+      // Conceptual SVG diagrams per project (idea, not fake UI screens)
+      const diagrams = {
+        // ===== 01 DASHBOARDS =====
+        aurelia: `
+          <svg viewBox="0 0 320 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- 5 EU market sources flowing into 1 dashboard -->
+            <g font-family="JetBrains Mono" font-size="6.4" letter-spacing="0.5" fill="#B8B0A0">
+              <text x="14" y="22">SHOPIFY · NL</text>
+              <text x="14" y="48">BOL · BE</text>
+              <text x="14" y="74">AMAZON · DE</text>
+              <text x="14" y="100">AMAZON · FR</text>
+              <text x="14" y="126">SHOPIFY · IT</text>
+            </g>
+            <g stroke="#3A3527" stroke-width="0.7" stroke-dasharray="2 3" fill="none">
+              <path d="M70 19 Q 140 19 200 70"/>
+              <path d="M70 45 Q 140 45 200 70"/>
+              <path d="M70 71 L 200 70"/>
+              <path d="M70 97 Q 140 97 200 70"/>
+              <path d="M70 123 Q 140 123 200 70"/>
+            </g>
+            <!-- packets along center rail -->
+            <g fill="#CCFF33">
+              <circle cx="115" cy="58" r="1.3" opacity="0.7"/>
+              <circle cx="155" cy="64" r="1.3" opacity="0.55"/>
+              <circle cx="180" cy="68" r="1.3" opacity="0.4"/>
+            </g>
+            <!-- AQL hub -->
+            <g transform="translate(220,70)">
+              <rect x="0" y="-22" width="86" height="44" rx="8" fill="#0B0A08" stroke="#CCFF33" stroke-width="1"/>
+              <text x="43" y="-9" text-anchor="middle" font-family="JetBrains Mono" font-size="5.6" letter-spacing="0.6" fill="#6B6557">UNIFIED VIEW</text>
+              <text x="43" y="6" text-anchor="middle" font-family="Instrument Serif" font-style="italic" font-size="11" fill="#EDE6D3">€48M GMV</text>
+              <line x1="14" y1="13" x2="72" y2="13" stroke="#CCFF33" stroke-width="0.5" opacity="0.5"/>
+              <text x="43" y="20" text-anchor="middle" font-family="JetBrains Mono" font-size="4.8" letter-spacing="0.5" fill="#6B6557">5 MARKETS · 1 SCREEN</text>
+            </g>
+          </svg>
+        `,
+        verde: `
+          <svg viewBox="0 0 320 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- 4 warehouses → unified inventory view -->
+            <g>
+              <rect x="14" y="18" width="60" height="22" rx="4" fill="#0B0A08" stroke="#3A3527" stroke-width="0.7"/>
+              <text x="44" y="32" text-anchor="middle" font-family="JetBrains Mono" font-size="6" fill="#B8B0A0">WHS · NL</text>
+              <rect x="14" y="48" width="60" height="22" rx="4" fill="#0B0A08" stroke="#3A3527" stroke-width="0.7"/>
+              <text x="44" y="62" text-anchor="middle" font-family="JetBrains Mono" font-size="6" fill="#B8B0A0">WHS · DE</text>
+              <rect x="14" y="78" width="60" height="22" rx="4" fill="#0B0A08" stroke="#3A3527" stroke-width="0.7"/>
+              <text x="44" y="92" text-anchor="middle" font-family="JetBrains Mono" font-size="6" fill="#B8B0A0">WHS · UK</text>
+              <rect x="14" y="108" width="60" height="22" rx="4" fill="#0B0A08" stroke="#3A3527" stroke-width="0.7"/>
+              <text x="44" y="122" text-anchor="middle" font-family="JetBrains Mono" font-size="6" fill="#B8B0A0">3PL · ES</text>
+            </g>
+            <g stroke="#3A3527" stroke-width="0.7" stroke-dasharray="2 3" fill="none">
+              <path d="M74 29 Q 130 29 170 70"/>
+              <path d="M74 59 Q 130 59 170 70"/>
+              <path d="M74 89 Q 130 89 170 70"/>
+              <path d="M74 119 Q 130 119 170 70"/>
+            </g>
+            <!-- center sync indicator -->
+            <g transform="translate(190,42)">
+              <rect x="0" y="0" width="116" height="56" rx="8" fill="#0B0A08" stroke="#CCFF33" stroke-width="1"/>
+              <text x="58" y="14" text-anchor="middle" font-family="JetBrains Mono" font-size="5.6" letter-spacing="0.6" fill="#6B6557">LIVE STOCK MAP</text>
+              <!-- 4 small bars -->
+              <g transform="translate(20,22)">
+                <rect x="0" y="14" width="8" height="14" fill="#CCFF33" opacity="0.85"/>
+                <rect x="14" y="6" width="8" height="22" fill="#CCFF33" opacity="0.7"/>
+                <rect x="28" y="10" width="8" height="18" fill="#CCFF33" opacity="0.55"/>
+                <rect x="42" y="2" width="8" height="26" fill="#CCFF33"/>
+              </g>
+              <text x="58" y="50" text-anchor="middle" font-family="Instrument Serif" font-style="italic" font-size="9" fill="#EDE6D3">0 oversells</text>
+            </g>
+          </svg>
+        `,
+        northstar: `
+          <svg viewBox="0 0 320 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- DTC / Subscription channels split into per-channel margin lanes -->
+            <g font-family="JetBrains Mono" font-size="6" fill="#B8B0A0" letter-spacing="0.5">
+              <text x="14" y="32">DTC</text>
+              <text x="14" y="74">SUB</text>
+              <text x="14" y="116">B2B</text>
+            </g>
+            <!-- channel rails -->
+            <g stroke="#3A3527" stroke-width="0.7" stroke-dasharray="2 3" fill="none">
+              <line x1="40" y1="28" x2="180" y2="28"/>
+              <line x1="40" y1="70" x2="180" y2="70"/>
+              <line x1="40" y1="112" x2="180" y2="112"/>
+            </g>
+            <!-- per-channel sparklines -->
+            <g fill="none" stroke="#CCFF33" stroke-width="1" stroke-linecap="round">
+              <path d="M44 30 L 60 24 L 80 28 L 100 18 L 120 22 L 145 14 L 175 10"/>
+              <path d="M44 72 L 70 66 L 95 70 L 130 60 L 175 54" opacity="0.75"/>
+              <path d="M44 114 L 75 110 L 110 108 L 150 104 L 175 100" opacity="0.55"/>
+            </g>
+            <!-- combined P&L card -->
+            <g transform="translate(200,38)">
+              <rect x="0" y="0" width="106" height="64" rx="8" fill="#0B0A08" stroke="#CCFF33" stroke-width="1"/>
+              <text x="53" y="14" text-anchor="middle" font-family="JetBrains Mono" font-size="5.6" letter-spacing="0.6" fill="#6B6557">REAL-TIME P&amp;L</text>
+              <text x="53" y="36" text-anchor="middle" font-family="Instrument Serif" font-style="italic" font-size="16" fill="#EDE6D3">31%</text>
+              <text x="53" y="50" text-anchor="middle" font-family="JetBrains Mono" font-size="5" letter-spacing="0.5" fill="#CCFF33">BLENDED MARGIN</text>
+              <text x="53" y="58" text-anchor="middle" font-family="JetBrains Mono" font-size="4.5" letter-spacing="0.4" fill="#6B6557">UPDATED 11s AGO</text>
+            </g>
+          </svg>
+        `,
+
+        // ===== 02 CRMS =====
+        apex: `
+          <svg viewBox="0 0 320 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- Wealth CRM hub-and-spoke: clients, advisors, portfolios, compliance, reporting -->
+            <g stroke="#3A3527" stroke-width="0.6" stroke-dasharray="2 3" fill="none">
+              <line x1="160" y1="70" x2="48" y2="22"/>
+              <line x1="160" y1="70" x2="272" y2="22"/>
+              <line x1="160" y1="70" x2="48" y2="118"/>
+              <line x1="160" y1="70" x2="272" y2="118"/>
+              <line x1="160" y1="70" x2="160" y2="14"/>
+            </g>
+            <!-- nodes -->
+            <g>
+              <g transform="translate(48,22)">
+                <circle r="14" fill="#0B0A08" stroke="#CCFF33" stroke-width="0.9"/>
+                <text y="2.5" text-anchor="middle" font-family="JetBrains Mono" font-size="5.4" letter-spacing="0.5" fill="#EDE6D3">CLIENTS</text>
+              </g>
+              <g transform="translate(272,22)">
+                <circle r="14" fill="#0B0A08" stroke="#CCFF33" stroke-width="0.9"/>
+                <text y="2.5" text-anchor="middle" font-family="JetBrains Mono" font-size="5.4" letter-spacing="0.5" fill="#EDE6D3">ADVISORS</text>
+              </g>
+              <g transform="translate(160,14)">
+                <circle r="11" fill="#0B0A08" stroke="#CCFF33" stroke-width="0.9"/>
+                <text y="2" text-anchor="middle" font-family="JetBrains Mono" font-size="4.8" letter-spacing="0.4" fill="#EDE6D3">CALENDLY</text>
+              </g>
+              <g transform="translate(48,118)">
+                <circle r="14" fill="#0B0A08" stroke="#CCFF33" stroke-width="0.9"/>
+                <text y="2.5" text-anchor="middle" font-family="JetBrains Mono" font-size="5" letter-spacing="0.5" fill="#EDE6D3">PORTFOLIO</text>
+              </g>
+              <g transform="translate(272,118)">
+                <circle r="14" fill="#0B0A08" stroke="#CCFF33" stroke-width="0.9"/>
+                <text y="2.5" text-anchor="middle" font-family="JetBrains Mono" font-size="4.8" letter-spacing="0.4" fill="#EDE6D3">COMPLIANCE</text>
+              </g>
+            </g>
+            <!-- center hub -->
+            <g transform="translate(160,70)">
+              <circle r="22" fill="#0B0A08" stroke="#CCFF33" stroke-width="1.3"/>
+              <circle r="16" fill="#CCFF33" opacity="0.95"/>
+              <text y="-2" text-anchor="middle" font-family="Instrument Serif" font-style="italic" font-size="9" fill="#0B0A08" font-weight="600">apex</text>
+              <text y="8" text-anchor="middle" font-family="JetBrains Mono" font-size="4.6" letter-spacing="0.5" fill="#0B0A08">1 CLIENT VIEW</text>
+            </g>
+          </svg>
+        `,
+        rosso: `
+          <svg viewBox="0 0 320 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- Inbound order alert → triage → routed to right channel/owner -->
+            <g font-family="JetBrains Mono" font-size="6" letter-spacing="0.5" fill="#B8B0A0">
+              <text x="20" y="76">ORDER FLAG</text>
+            </g>
+            <g transform="translate(14,38)">
+              <rect x="0" y="40" width="68" height="22" rx="4" fill="#0B0A08" stroke="#CCFF33" stroke-width="0.8"/>
+              <circle cx="12" cy="51" r="3" fill="#FF4538"/>
+              <text x="22" y="54" font-family="JetBrains Mono" font-size="5" letter-spacing="0.4" fill="#EDE6D3">ESCALATE</text>
+            </g>
+            <!-- arrow -->
+            <g stroke="#3A3527" stroke-width="0.7" stroke-dasharray="2 3" fill="none">
+              <path d="M82 89 Q 110 89 130 70"/>
+            </g>
+            <!-- triage box -->
+            <g transform="translate(132,40)">
+              <rect x="0" y="14" width="56" height="32" rx="6" fill="#0B0A08" stroke="#CCFF33" stroke-width="0.9"/>
+              <text x="28" y="26" text-anchor="middle" font-family="JetBrains Mono" font-size="5.2" letter-spacing="0.5" fill="#6B6557">TRIAGE</text>
+              <text x="28" y="38" text-anchor="middle" font-family="Instrument Serif" font-style="italic" font-size="8" fill="#EDE6D3">11s</text>
+            </g>
+            <!-- branches out -->
+            <g stroke="#3A3527" stroke-width="0.7" stroke-dasharray="2 3" fill="none">
+              <path d="M188 58 Q 220 38 250 30"/>
+              <path d="M188 70 L 250 70"/>
+              <path d="M188 82 Q 220 102 250 110"/>
+            </g>
+            <g>
+              <g transform="translate(250,22)">
+                <rect x="0" y="0" width="56" height="18" rx="4" fill="#0B0A08" stroke="#3A3527"/>
+                <text x="28" y="12" text-anchor="middle" font-family="JetBrains Mono" font-size="5" letter-spacing="0.5" fill="#EDE6D3">SLACK · OPS</text>
+              </g>
+              <g transform="translate(250,62)">
+                <rect x="0" y="0" width="56" height="18" rx="4" fill="#0B0A08" stroke="#3A3527"/>
+                <text x="28" y="12" text-anchor="middle" font-family="JetBrains Mono" font-size="5" letter-spacing="0.5" fill="#EDE6D3">CS · OWNER</text>
+              </g>
+              <g transform="translate(250,102)">
+                <rect x="0" y="0" width="56" height="18" rx="4" fill="#0B0A08" stroke="#3A3527"/>
+                <text x="28" y="12" text-anchor="middle" font-family="JetBrains Mono" font-size="5" letter-spacing="0.5" fill="#EDE6D3">3PL · LIFT</text>
+              </g>
+            </g>
+          </svg>
+        `,
+        reporter: `
+          <svg viewBox="0 0 320 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- Source data → templated → generated → filed (Doc Factory style flow) -->
+            <g font-family="JetBrains Mono" font-size="5.6" letter-spacing="0.5" fill="#6B6557">
+              <text x="38" y="14" text-anchor="middle">SOURCE</text>
+              <text x="120" y="14" text-anchor="middle">TEMPLATE</text>
+              <text x="202" y="14" text-anchor="middle">GENERATED</text>
+              <text x="282" y="14" text-anchor="middle">FILED</text>
+            </g>
+            <!-- 4 stages -->
+            <g>
+              <rect x="14" y="22" width="48" height="50" rx="6" fill="#0B0A08" stroke="#3A3527" stroke-width="0.7"/>
+              <g stroke="#B8B0A0" stroke-width="0.6" opacity="0.7">
+                <line x1="22" y1="34" x2="54" y2="34"/>
+                <line x1="22" y1="42" x2="54" y2="42"/>
+                <line x1="22" y1="50" x2="48" y2="50"/>
+                <line x1="22" y1="58" x2="54" y2="58"/>
+                <line x1="22" y1="66" x2="40" y2="66"/>
+              </g>
+              <text x="38" y="86" text-anchor="middle" font-family="JetBrains Mono" font-size="5" fill="#B8B0A0">SHEETS</text>
+
+              <rect x="96" y="22" width="48" height="50" rx="6" fill="#0B0A08" stroke="#3A3527" stroke-width="0.7"/>
+              <g stroke="#B8B0A0" stroke-width="0.6" opacity="0.5" stroke-dasharray="2 2">
+                <line x1="104" y1="34" x2="136" y2="34"/>
+                <line x1="104" y1="42" x2="136" y2="42"/>
+                <line x1="104" y1="50" x2="136" y2="50"/>
+                <line x1="104" y1="58" x2="130" y2="58"/>
+              </g>
+              <text x="120" y="86" text-anchor="middle" font-family="JetBrains Mono" font-size="5" fill="#B8B0A0">DOC TPL</text>
+
+              <rect x="178" y="22" width="48" height="50" rx="6" fill="#0B0A08" stroke="#CCFF33" stroke-width="0.9"/>
+              <g stroke="#CCFF33" stroke-width="0.6">
+                <line x1="186" y1="34" x2="218" y2="34"/>
+                <line x1="186" y1="42" x2="218" y2="42"/>
+                <line x1="186" y1="50" x2="218" y2="50"/>
+                <line x1="186" y1="58" x2="218" y2="58"/>
+                <line x1="186" y1="66" x2="210" y2="66"/>
+              </g>
+              <text x="202" y="86" text-anchor="middle" font-family="JetBrains Mono" font-size="5" fill="#CCFF33">REPORT</text>
+
+              <rect x="258" y="22" width="48" height="50" rx="6" fill="#0B0A08" stroke="#3A3527" stroke-width="0.7"/>
+              <g fill="none" stroke="#B8B0A0" stroke-width="0.6">
+                <path d="M268 36 L 296 36 L 296 66 L 268 66 Z"/>
+                <path d="M268 36 L 282 28 L 296 36"/>
+              </g>
+              <text x="282" y="86" text-anchor="middle" font-family="JetBrains Mono" font-size="5" fill="#B8B0A0">DRIVE</text>
+            </g>
+            <!-- arrows -->
+            <g stroke="#CCFF33" stroke-width="0.8" fill="#CCFF33" opacity="0.85">
+              <line x1="62" y1="47" x2="92" y2="47"/>
+              <polygon points="92,47 88,45 88,49"/>
+              <line x1="144" y1="47" x2="174" y2="47"/>
+              <polygon points="174,47 170,45 170,49"/>
+              <line x1="226" y1="47" x2="256" y2="47"/>
+              <polygon points="256,47 252,45 252,49"/>
+            </g>
+            <!-- footer metric -->
+            <g transform="translate(160,108)">
+              <text text-anchor="middle" font-family="Instrument Serif" font-style="italic" font-size="11" fill="#EDE6D3">9d → 47min</text>
+            </g>
+          </svg>
+        `,
+
+        // ===== 03 INTEGRATIONS =====
+        bridge: `
+          <svg viewBox="0 0 320 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- Two storefronts in parity, packets in both directions -->
+            <g>
+              <rect x="14" y="48" width="68" height="42" rx="6" fill="#0B0A08" stroke="#CCFF33" stroke-width="0.9"/>
+              <text x="48" y="62" text-anchor="middle" font-family="JetBrains Mono" font-size="6" letter-spacing="0.5" fill="#6B6557">SHOPIFY</text>
+              <text x="48" y="79" text-anchor="middle" font-family="Instrument Serif" font-style="italic" font-size="10" fill="#EDE6D3">stock</text>
+
+              <rect x="238" y="48" width="68" height="42" rx="6" fill="#0B0A08" stroke="#CCFF33" stroke-width="0.9"/>
+              <text x="272" y="62" text-anchor="middle" font-family="JetBrains Mono" font-size="6" letter-spacing="0.5" fill="#6B6557">BOL</text>
+              <text x="272" y="79" text-anchor="middle" font-family="Instrument Serif" font-style="italic" font-size="10" fill="#EDE6D3">stock</text>
+            </g>
+            <!-- bidirectional rails -->
+            <g stroke="#3A3527" stroke-width="0.8" stroke-dasharray="2 3" fill="none">
+              <line x1="82" y1="62" x2="238" y2="62"/>
+              <line x1="82" y1="76" x2="238" y2="76"/>
+            </g>
+            <!-- packets right→left -->
+            <g fill="#CCFF33">
+              <circle cx="120" cy="62" r="2.2"/>
+              <circle cx="170" cy="62" r="1.6" opacity="0.7"/>
+              <circle cx="200" cy="62" r="1.2" opacity="0.5"/>
+              <circle cx="200" cy="76" r="2.2"/>
+              <circle cx="150" cy="76" r="1.6" opacity="0.7"/>
+              <circle cx="120" cy="76" r="1.2" opacity="0.5"/>
+            </g>
+            <!-- center bus indicator -->
+            <g>
+              <text x="160" y="34" text-anchor="middle" font-family="JetBrains Mono" font-size="5.4" letter-spacing="0.7" fill="#6B6557">WEBHOOK · LIVE</text>
+              <line x1="148" y1="38" x2="172" y2="38" stroke="#CCFF33" stroke-width="0.6" opacity="0.6"/>
+              <text x="160" y="106" text-anchor="middle" font-family="Instrument Serif" font-style="italic" font-size="9" fill="#EDE6D3">parity confirmed</text>
+            </g>
+          </svg>
+        `,
+        fulfilment: `
+          <svg viewBox="0 0 320 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- 4 carriers funnel into one label flow -->
+            <g font-family="JetBrains Mono" font-size="5.6" letter-spacing="0.5" fill="#B8B0A0">
+              <text x="20" y="22">DHL</text>
+              <text x="20" y="50">POSTNL</text>
+              <text x="20" y="78">UPS</text>
+              <text x="20" y="106">3PL</text>
+            </g>
+            <!-- carrier nodes -->
+            <g fill="#0B0A08" stroke="#3A3527" stroke-width="0.7">
+              <rect x="50" y="14" width="52" height="14" rx="3"/>
+              <rect x="50" y="42" width="52" height="14" rx="3"/>
+              <rect x="50" y="70" width="52" height="14" rx="3"/>
+              <rect x="50" y="98" width="52" height="14" rx="3"/>
+            </g>
+            <!-- funnel converging -->
+            <g stroke="#3A3527" stroke-width="0.7" stroke-dasharray="2 3" fill="none">
+              <path d="M102 21 Q 150 21 178 64"/>
+              <path d="M102 49 Q 150 49 178 64"/>
+              <path d="M102 77 Q 150 77 178 70"/>
+              <path d="M102 105 Q 150 105 178 76"/>
+            </g>
+            <!-- linnworks router -->
+            <g transform="translate(178,46)">
+              <rect x="0" y="0" width="58" height="40" rx="6" fill="#0B0A08" stroke="#CCFF33" stroke-width="1"/>
+              <text x="29" y="14" text-anchor="middle" font-family="JetBrains Mono" font-size="5.2" letter-spacing="0.5" fill="#6B6557">LINNWORKS</text>
+              <text x="29" y="28" text-anchor="middle" font-family="Instrument Serif" font-style="italic" font-size="9" fill="#EDE6D3">router</text>
+            </g>
+            <!-- single label out -->
+            <g stroke="#CCFF33" stroke-width="0.8" fill="#CCFF33">
+              <line x1="236" y1="66" x2="262" y2="66"/>
+              <polygon points="262,66 258,64 258,68"/>
+            </g>
+            <g transform="translate(264,46)">
+              <rect x="0" y="0" width="42" height="40" rx="6" fill="#0B0A08" stroke="#CCFF33" stroke-width="1"/>
+              <g fill="none" stroke="#CCFF33" stroke-width="0.7">
+                <rect x="6" y="8" width="30" height="24" rx="2"/>
+                <line x1="10" y1="14" x2="32" y2="14"/>
+                <line x1="10" y1="20" x2="32" y2="20"/>
+                <line x1="10" y1="26" x2="26" y2="26"/>
+              </g>
+            </g>
+            <text x="285" y="92" text-anchor="middle" font-family="JetBrains Mono" font-size="5" letter-spacing="0.5" fill="#CCFF33">LABEL</text>
+          </svg>
+        `,
+        finloop: `
+          <svg viewBox="0 0 320 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- 3 payment sources → reconciliation engine → ledger -->
+            <g>
+              <rect x="14" y="20" width="56" height="20" rx="4" fill="#0B0A08" stroke="#3A3527" stroke-width="0.7"/>
+              <text x="42" y="33" text-anchor="middle" font-family="JetBrains Mono" font-size="5.6" letter-spacing="0.5" fill="#B8B0A0">STRIPE</text>
+
+              <rect x="14" y="60" width="56" height="20" rx="4" fill="#0B0A08" stroke="#3A3527" stroke-width="0.7"/>
+              <text x="42" y="73" text-anchor="middle" font-family="JetBrains Mono" font-size="5.6" letter-spacing="0.5" fill="#B8B0A0">MOLLIE</text>
+
+              <rect x="14" y="100" width="56" height="20" rx="4" fill="#0B0A08" stroke="#3A3527" stroke-width="0.7"/>
+              <text x="42" y="113" text-anchor="middle" font-family="JetBrains Mono" font-size="5.6" letter-spacing="0.5" fill="#B8B0A0">BANK</text>
+            </g>
+            <g stroke="#3A3527" stroke-width="0.7" stroke-dasharray="2 3" fill="none">
+              <path d="M70 30 Q 110 30 140 64"/>
+              <path d="M70 70 L 140 70"/>
+              <path d="M70 110 Q 110 110 140 76"/>
+            </g>
+            <!-- reconciliation engine -->
+            <g transform="translate(140,46)">
+              <rect x="0" y="0" width="74" height="48" rx="8" fill="#0B0A08" stroke="#CCFF33" stroke-width="1"/>
+              <!-- gear-ish visual: two interlocking circles -->
+              <circle cx="26" cy="24" r="9" fill="none" stroke="#CCFF33" stroke-width="0.8"/>
+              <circle cx="48" cy="24" r="9" fill="none" stroke="#CCFF33" stroke-width="0.8"/>
+              <text x="37" y="42" text-anchor="middle" font-family="JetBrains Mono" font-size="4.8" letter-spacing="0.6" fill="#6B6557">RECONCILE</text>
+            </g>
+            <g stroke="#CCFF33" stroke-width="0.8" fill="#CCFF33">
+              <line x1="214" y1="70" x2="244" y2="70"/>
+              <polygon points="244,70 240,68 240,72"/>
+            </g>
+            <!-- quickbooks ledger -->
+            <g transform="translate(246,46)">
+              <rect x="0" y="0" width="60" height="48" rx="6" fill="#0B0A08" stroke="#CCFF33" stroke-width="1"/>
+              <text x="30" y="14" text-anchor="middle" font-family="JetBrains Mono" font-size="5" letter-spacing="0.5" fill="#6B6557">QUICKBOOKS</text>
+              <text x="30" y="32" text-anchor="middle" font-family="Instrument Serif" font-style="italic" font-size="11" fill="#EDE6D3">11min</text>
+              <text x="30" y="42" text-anchor="middle" font-family="JetBrains Mono" font-size="4.4" letter-spacing="0.5" fill="#CCFF33">/ WEEK</text>
+            </g>
+          </svg>
+        `,
+
+        // ===== 04 COMMS / AUTOMATION =====
+        returnsBot: `
+          <svg viewBox="0 0 320 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- WhatsApp inbound → status check (decision diamond) → reply | escalate -->
+            <g transform="translate(14,52)">
+              <rect x="0" y="0" width="60" height="36" rx="14" fill="#0B0A08" stroke="#CCFF33" stroke-width="0.9"/>
+              <text x="30" y="14" text-anchor="middle" font-family="JetBrains Mono" font-size="5.2" letter-spacing="0.5" fill="#6B6557">WHATSAPP</text>
+              <text x="30" y="28" text-anchor="middle" font-family="Instrument Serif" font-style="italic" font-size="9" fill="#EDE6D3">inbound</text>
+            </g>
+            <g stroke="#CCFF33" stroke-width="0.8" fill="#CCFF33">
+              <line x1="74" y1="70" x2="118" y2="70"/>
+              <polygon points="118,70 114,68 114,72"/>
+            </g>
+            <!-- decision diamond -->
+            <g transform="translate(160,70)">
+              <polygon points="0,-28 38,0 0,28 -38,0" fill="#0B0A08" stroke="#CCFF33" stroke-width="1"/>
+              <text y="-4" text-anchor="middle" font-family="JetBrains Mono" font-size="4.8" letter-spacing="0.5" fill="#6B6557">CHECK</text>
+              <text y="6" text-anchor="middle" font-family="Instrument Serif" font-style="italic" font-size="8" fill="#EDE6D3">intent?</text>
+            </g>
+            <!-- two outcomes -->
+            <g stroke="#CCFF33" stroke-width="0.8" fill="#CCFF33">
+              <line x1="198" y1="58" x2="240" y2="32"/>
+              <polygon points="240,32 235,32 238,36"/>
+              <line x1="198" y1="82" x2="240" y2="108"/>
+              <polygon points="240,108 235,107 238,103"/>
+            </g>
+            <g transform="translate(240,16)">
+              <rect x="0" y="0" width="66" height="24" rx="6" fill="#0B0A08" stroke="#CCFF33" stroke-width="0.8"/>
+              <text x="33" y="9" text-anchor="middle" font-family="JetBrains Mono" font-size="4.8" letter-spacing="0.5" fill="#CCFF33">AUTO-REPLY</text>
+              <text x="33" y="19" text-anchor="middle" font-family="JetBrains Mono" font-size="4.4" letter-spacing="0.5" fill="#6B6557">97.7%</text>
+            </g>
+            <g transform="translate(240,98)">
+              <rect x="0" y="0" width="66" height="24" rx="6" fill="#0B0A08" stroke="#3A3527" stroke-width="0.7"/>
+              <text x="33" y="9" text-anchor="middle" font-family="JetBrains Mono" font-size="4.8" letter-spacing="0.5" fill="#B8B0A0">ESCALATE</text>
+              <text x="33" y="19" text-anchor="middle" font-family="JetBrains Mono" font-size="4.4" letter-spacing="0.5" fill="#6B6557">2.3%</text>
+            </g>
+          </svg>
+        `,
+        leadBriefer: `
+          <svg viewBox="0 0 320 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- Booking → enrich → brief doc → ping (4-step pipeline) -->
+            <g font-family="JetBrains Mono" font-size="5" letter-spacing="0.5" fill="#6B6557">
+              <text x="34" y="14" text-anchor="middle">BOOKING</text>
+              <text x="118" y="14" text-anchor="middle">ENRICH</text>
+              <text x="202" y="14" text-anchor="middle">BRIEF</text>
+              <text x="286" y="14" text-anchor="middle">PING</text>
+            </g>
+            <!-- 4 step pills -->
+            <g>
+              <g transform="translate(8,24)">
+                <rect x="0" y="0" width="52" height="44" rx="8" fill="#0B0A08" stroke="#3A3527" stroke-width="0.7"/>
+                <rect x="8" y="8" width="36" height="6" rx="1" fill="#CCFF33" opacity="0.5"/>
+                <g stroke="#B8B0A0" stroke-width="0.6">
+                  <line x1="8" y1="20" x2="44" y2="20"/>
+                  <line x1="8" y1="26" x2="40" y2="26"/>
+                  <line x1="8" y1="32" x2="44" y2="32"/>
+                </g>
+                <text x="26" y="60" text-anchor="middle" font-family="Instrument Serif" font-style="italic" font-size="6.4" fill="#B8B0A0">calendly</text>
+              </g>
+              <g transform="translate(92,24)">
+                <rect x="0" y="0" width="52" height="44" rx="8" fill="#0B0A08" stroke="#3A3527" stroke-width="0.7"/>
+                <circle cx="14" cy="22" r="7" fill="none" stroke="#CCFF33" stroke-width="0.8"/>
+                <circle cx="14" cy="22" r="3" fill="#CCFF33"/>
+                <g stroke="#B8B0A0" stroke-width="0.6">
+                  <line x1="26" y1="18" x2="44" y2="18"/>
+                  <line x1="26" y1="24" x2="44" y2="24"/>
+                  <line x1="26" y1="30" x2="38" y2="30"/>
+                </g>
+                <text x="26" y="60" text-anchor="middle" font-family="Instrument Serif" font-style="italic" font-size="6.4" fill="#B8B0A0">hubspot</text>
+              </g>
+              <g transform="translate(176,24)">
+                <rect x="0" y="0" width="52" height="44" rx="8" fill="#0B0A08" stroke="#CCFF33" stroke-width="0.9"/>
+                <g stroke="#CCFF33" stroke-width="0.6">
+                  <line x1="8" y1="10" x2="44" y2="10"/>
+                  <line x1="8" y1="16" x2="44" y2="16"/>
+                  <line x1="8" y1="22" x2="44" y2="22"/>
+                  <line x1="8" y1="28" x2="40" y2="28"/>
+                  <line x1="8" y1="34" x2="44" y2="34"/>
+                </g>
+                <text x="26" y="60" text-anchor="middle" font-family="Instrument Serif" font-style="italic" font-size="6.4" fill="#CCFF33">one-pager</text>
+              </g>
+              <g transform="translate(260,24)">
+                <rect x="0" y="0" width="52" height="44" rx="8" fill="#0B0A08" stroke="#3A3527" stroke-width="0.7"/>
+                <circle cx="26" cy="22" r="9" fill="#CCFF33"/>
+                <text x="26" y="25.5" text-anchor="middle" font-family="JetBrains Mono" font-size="6.5" font-weight="700" fill="#0B0A08">!</text>
+                <text x="26" y="60" text-anchor="middle" font-family="Instrument Serif" font-style="italic" font-size="6.4" fill="#B8B0A0">slack T-4h</text>
+              </g>
+            </g>
+            <!-- arrows between -->
+            <g stroke="#CCFF33" stroke-width="0.8" fill="#CCFF33" opacity="0.85">
+              <line x1="60" y1="46" x2="88" y2="46"/>
+              <polygon points="88,46 84,44 84,48"/>
+              <line x1="144" y1="46" x2="172" y2="46"/>
+              <polygon points="172,46 168,44 168,48"/>
+              <line x1="228" y1="46" x2="256" y2="46"/>
+              <polygon points="256,46 252,44 252,48"/>
+            </g>
+            <!-- footer metric -->
+            <g transform="translate(160,118)">
+              <text text-anchor="middle" font-family="JetBrains Mono" font-size="5.5" letter-spacing="0.6" fill="#CCFF33">0 ADVISORS PREPPING COLD</text>
+            </g>
+          </svg>
+        `,
+        triage: `
+          <svg viewBox="0 0 320 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- 4 channels → unified queue → SLA-routed -->
+            <g font-family="JetBrains Mono" font-size="5.4" letter-spacing="0.5" fill="#B8B0A0">
+              <text x="14" y="18">EMAIL</text>
+              <text x="14" y="46">IG DM</text>
+              <text x="14" y="74">WHATSAPP</text>
+              <text x="14" y="102">SMS</text>
+            </g>
+            <g fill="#0B0A08" stroke="#3A3527" stroke-width="0.7">
+              <rect x="48" y="10" width="14" height="12" rx="2"/>
+              <rect x="48" y="38" width="14" height="12" rx="2"/>
+              <rect x="48" y="66" width="14" height="12" rx="2"/>
+              <rect x="48" y="94" width="14" height="12" rx="2"/>
+            </g>
+            <g stroke="#3A3527" stroke-width="0.7" stroke-dasharray="2 3" fill="none">
+              <path d="M62 16 Q 110 16 138 56"/>
+              <path d="M62 44 Q 110 44 138 64"/>
+              <path d="M62 72 L 138 72"/>
+              <path d="M62 100 Q 110 100 138 80"/>
+            </g>
+            <!-- unified queue: stacked rows -->
+            <g transform="translate(140,40)">
+              <rect x="0" y="0" width="80" height="60" rx="8" fill="#0B0A08" stroke="#CCFF33" stroke-width="1"/>
+              <text x="40" y="13" text-anchor="middle" font-family="JetBrains Mono" font-size="5.2" letter-spacing="0.5" fill="#6B6557">UNIFIED QUEUE</text>
+              <g stroke="#CCFF33" stroke-width="0.6" opacity="0.8">
+                <line x1="8" y1="22" x2="72" y2="22"/>
+                <line x1="8" y1="32" x2="72" y2="32"/>
+                <line x1="8" y1="42" x2="64" y2="42"/>
+                <line x1="8" y1="52" x2="72" y2="52"/>
+              </g>
+              <circle cx="74" cy="22" r="2" fill="#FF4538"/>
+              <circle cx="74" cy="32" r="2" fill="#E97451"/>
+              <circle cx="68" cy="42" r="2" fill="#CCFF33"/>
+              <circle cx="74" cy="52" r="2" fill="#CCFF33"/>
+            </g>
+            <!-- 3 outputs by SLA -->
+            <g stroke="#3A3527" stroke-width="0.7" stroke-dasharray="2 3" fill="none">
+              <path d="M220 56 Q 250 40 270 28"/>
+              <path d="M220 70 L 270 70"/>
+              <path d="M220 84 Q 250 100 270 112"/>
+            </g>
+            <g>
+              <g transform="translate(270,18)">
+                <rect x="0" y="0" width="40" height="20" rx="4" fill="#0B0A08" stroke="#FF4538" stroke-width="0.8"/>
+                <text x="20" y="13" text-anchor="middle" font-family="JetBrains Mono" font-size="5" letter-spacing="0.5" fill="#FF4538">SLA · NOW</text>
+              </g>
+              <g transform="translate(270,60)">
+                <rect x="0" y="0" width="40" height="20" rx="4" fill="#0B0A08" stroke="#E97451" stroke-width="0.8"/>
+                <text x="20" y="13" text-anchor="middle" font-family="JetBrains Mono" font-size="5" letter-spacing="0.5" fill="#E97451">4H</text>
+              </g>
+              <g transform="translate(270,102)">
+                <rect x="0" y="0" width="40" height="20" rx="4" fill="#0B0A08" stroke="#CCFF33" stroke-width="0.8"/>
+                <text x="20" y="13" text-anchor="middle" font-family="JetBrains Mono" font-size="5" letter-spacing="0.5" fill="#CCFF33">24H</text>
+              </g>
+            </g>
+          </svg>
+        `,
+      };
+
+      // Capability data
+      const CAPS = {
+        '01': {
+          kicker: 'EXPANDED · 01 / DASHBOARDS',
+          headline: 'The <span class="font-serif-italic">control</span> room.',
+          subhead: 'What this looks like when you hire us for it. Real-time finance, inventory and multi-channel orders pulled from twelve platforms into one operable view.',
+          projects: [
+            {
+              codename: 'House of Aurelia',
+              desc: 'Cross-border orders + finance dashboard. Shopify + Bol + Amazon, 5 EU markets.',
+              stack: ['Shopify', 'Bol', 'Amazon', 'Stripe', 'Linnworks', 'Supabase'],
+              metricLabel: 'Live sync', metric: '12,400 SKUs',
+              diagram: diagrams.aurelia,
+            },
+            {
+              codename: 'Maison Verde',
+              desc: 'Real-time inventory across 4 warehouses. Stock-out prevention.',
+              stack: ['Shopify Plus', 'Amazon FBA', 'Linnworks', '3PL APIs', 'Supabase'],
+              metricLabel: 'Oversells / month', metric: '187 → 0',
+              diagram: diagrams.verde,
+            },
+            {
+              codename: 'Northstar Coffee Co.',
+              desc: 'DTC + subscription P&L dashboard. Per-channel margin in real time.',
+              stack: ['Shopify', 'Recharge', 'Klaviyo', 'QuickBooks', 'Stripe', 'Supabase'],
+              metricLabel: 'Margin cadence', metric: 'monthly → real-time',
+              diagram: diagrams.northstar,
+            },
+          ],
+          tools: ['Shopify','Bol','Amazon','Temu','Noon','Stripe','Mollie','Linnworks','DHL','Klaviyo','Meta','GA4','Supabase','Next.js','Vercel'],
+        },
+        '02': {
+          kicker: 'EXPANDED · 02 / CRMS · INTERNAL TOOLS',
+          headline: 'The <span class="font-serif-italic">brain.</span>',
+          subhead: 'What this looks like when you hire us for it. Custom CRMs and internal portals that hold a team’s reasoning — built when off-the-shelf doesn’t fit.',
+          projects: [
+            {
+              codename: 'Apex Wealth',
+              desc: 'Wealth-management CRM unifying advisor inboxes, Calendly, portfolios and compliance flags.',
+              stack: ['Next.js', 'Supabase', 'HubSpot', 'Calendly', 'Outlook', 'DocuSign'],
+              metricLabel: 'Advisor view', metric: '9 inboxes → 1',
+              diagram: diagrams.apex,
+            },
+            {
+              codename: 'Atelier Rosso',
+              desc: 'Internal ops portal — Slack-tight order escalation + customer-service routing.',
+              stack: ['Next.js', 'Supabase', 'Shopify', 'Klaviyo', 'Slack'],
+              metricLabel: 'Median CS reply', metric: '11s',
+              diagram: diagrams.rosso,
+            },
+            {
+              codename: 'Apex Wealth Reporter',
+              desc: 'Quarterly client reports auto-generated from sheets, templates and compliance flags.',
+              stack: ['Sheets', 'Supabase', 'Notion', 'Drive', 'n8n'],
+              metricLabel: 'Time per report', metric: '9d → 47min',
+              diagram: diagrams.reporter,
+            },
+          ],
+          tools: ['Next.js','Supabase','HubSpot','Salesforce','Notion','Airtable','Calendly','DocuSign','Outlook','Gmail','Slack','Linear'],
+        },
+        '03': {
+          kicker: 'EXPANDED · 03 / INTEGRATIONS',
+          headline: 'The <span class="font-serif-italic">plumbing.</span>',
+          subhead: 'What this looks like when you hire us for it. Cross-platform syncs between marketplaces, payments, shipping and Workspace — the unsexy work that keeps everything else honest.',
+          projects: [
+            {
+              codename: 'Aurelia · Bol↔Shopify Bridge',
+              desc: 'Real-time stock + order parity across two storefronts.',
+              stack: ['Shopify Webhooks', 'Bol Retailer API', 'Supabase', 'n8n'],
+              metricLabel: 'Cross-channel oversells', metric: '0',
+              diagram: diagrams.bridge,
+            },
+            {
+              codename: 'Verde · Multi-Warehouse Fulfilment',
+              desc: 'Linnworks + DHL + PostNL + 3PL → unified shipping label flow.',
+              stack: ['Linnworks', 'DHL Express', 'PostNL', 'n8n', 'Supabase'],
+              metricLabel: 'Carriers, labels', metric: '4 → 1 flow',
+              diagram: diagrams.fulfilment,
+            },
+            {
+              codename: 'Northstar · Finance Loop',
+              desc: 'Stripe + Mollie + bank → QuickBooks reconciliation, weekly to live.',
+              stack: ['Stripe', 'Mollie', 'Plaid', 'QuickBooks', 'Make'],
+              metricLabel: 'Reconciliation time', metric: '6h → 11min',
+              diagram: diagrams.finloop,
+            },
+          ],
+          tools: ['Shopify Webhooks','Bol API','Amazon SP-API','Stripe','Mollie','Plaid','QuickBooks','Exact','Linnworks','n8n','Make','Zapier','Supabase','CF Workers','Postman'],
+        },
+        '04': {
+          kicker: 'EXPANDED · 04 / COMMS · AUTOMATION',
+          headline: 'The <span class="font-serif-italic">reflexes.</span>',
+          subhead: 'What this looks like when you hire us for it. WhatsApp and Telegram bots, customer-service flows, and routing rules that catch issues before a human needs to.',
+          projects: [
+            {
+              codename: 'Rosso · Returns Bot',
+              desc: 'WhatsApp inbound → Shopify status check → drafted reply, escalates only when intent ≠ resolved.',
+              stack: ['WhatsApp Business', 'Shopify', 'OpenAI', 'Make'],
+              metricLabel: 'Human escalation', metric: '2.3%',
+              diagram: diagrams.returnsBot,
+            },
+            {
+              codename: 'Apex · Lead Briefer',
+              desc: 'Calendly booking → HubSpot enrichment → Gmail history → one-page brief → Slack ping 4h before.',
+              stack: ['Calendly', 'HubSpot', 'Gmail', 'Google Docs', 'Slack', 'n8n'],
+              metricLabel: 'Cold-prepped meetings', metric: '0',
+              diagram: diagrams.leadBriefer,
+            },
+            {
+              codename: 'Verde · CS Triage',
+              desc: 'Inbound across email/IG/WhatsApp → unified queue → routed by SLA + topic.',
+              stack: ['Front', 'Klaviyo', 'WhatsApp', 'Make', 'Supabase'],
+              metricLabel: 'Channels, queues', metric: '4 → 1',
+              diagram: diagrams.triage,
+            },
+          ],
+          tools: ['WhatsApp Business','Telegram Bot API','Slack','Make','n8n','Zapier','OpenAI','Klaviyo','Front','HubSpot','Calendly','Gmail','Google Docs'],
+        },
+      };
+
+      const sectionRoot = document.getElementById('capabilitiesSection');
+      const shell = document.getElementById('capDetailShell');
+      const detail = document.getElementById('capDetail');
+      const cards = Array.from(document.querySelectorAll('.cap-card[data-cap-id]'));
+
+      let activeId = null;
+      let swapTimer = null;
+
+      function escapeHtml(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+      function renderPanelHTML(id) {
+        const data = CAPS[id];
+        if (!data) return '';
+        const projects = data.projects.map(p => `
+          <div class="cap-project">
+            <div class="cap-project-diagram">${p.diagram}</div>
+            <span class="cap-project-codename">${escapeHtml(p.codename)}</span>
+            <p class="cap-project-desc">${escapeHtml(p.desc)}</p>
+            <div class="cap-project-stack">
+              ${p.stack.map(t => `<span class="cap-mini-chip">${escapeHtml(t)}</span>`).join('')}
+            </div>
+            <div class="cap-project-metric">
+              <div class="cap-project-metric-label">${escapeHtml(p.metricLabel)}</div>
+              <div class="cap-project-metric-value">${escapeHtml(p.metric)}</div>
+            </div>
+          </div>
+        `).join('');
+        const tools = data.tools.map(t => `<span class="cap-tool-chip">${escapeHtml(t)}</span>`).join('');
+        return `
+          <span class="cap-detail-rail" aria-hidden="true"></span>
+          <span class="cap-detail-kicker"><span class="pulse-dot"></span>${escapeHtml(data.kicker)}</span>
+          <h3 class="cap-detail-headline">${data.headline}</h3>
+          <p class="cap-detail-subhead">${escapeHtml(data.subhead)}</p>
+
+          <div class="cap-detail-divider"><span>Three example projects</span></div>
+          <div class="cap-projects">${projects}</div>
+
+          <div class="cap-detail-divider"><span>Tools we typically reach for</span></div>
+          <div class="cap-tools-wrap">${tools}</div>
+
+          <div class="cap-detail-cta-row">
+            <a href="#contact" class="cap-btn-lime">
+              <span>Talk to us about this kind of work</span>
+              <span aria-hidden="true">→</span>
+            </a>
+            <a href="#cases" class="cap-btn-ghost">
+              <span>See related case study</span>
+              <span aria-hidden="true">↗</span>
+            </a>
+            <button type="button" class="cap-detail-close" data-close>
+              <span>Close</span>
+              <span class="esc-key">ESC</span>
+            </button>
+          </div>
+        `;
+      }
+
+      function applyActiveCardStyles(id) {
+        cards.forEach(card => {
+          const isActive = card.dataset.capId === id;
+          card.classList.toggle('is-card-active', isActive);
+          card.setAttribute('aria-expanded', isActive ? 'true' : 'false');
+          const labelEl = card.querySelector('[data-link-label]');
+          if (labelEl) {
+            labelEl.textContent = isActive ? '↑ Hide details' : '↳ See related work';
+          }
+        });
+      }
+
+      function openCapability(id, opts = {}) {
+        const data = CAPS[id];
+        if (!data) return;
+        const opts2 = Object.assign({ scroll: true, fromHash: false }, opts);
+        const wasOpen = !!activeId;
+
+        if (activeId === id) {
+          // toggle: clicking same card closes
+          closePanel();
+          return;
+        }
+
+        sectionRoot.setAttribute('data-active-cap', id);
+        activeId = id;
+        applyActiveCardStyles(id);
+
+        const doRender = () => {
+          detail.innerHTML = renderPanelHTML(id);
+          // wire close button
+          const closeBtn = detail.querySelector('[data-close]');
+          if (closeBtn) closeBtn.addEventListener('click', () => closePanel());
+          requestAnimationFrame(() => {
+            shell.classList.add('is-open');
+            shell.setAttribute('aria-hidden', 'false');
+            detail.classList.remove('is-swapping');
+          });
+          if (opts2.scroll) {
+            // small delay so the panel has begun expanding before we scroll
+            setTimeout(() => {
+              try {
+                shell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              } catch (e) {
+                shell.scrollIntoView();
+              }
+            }, 80);
+          }
+        };
+
+        if (wasOpen) {
+          // cross-fade swap
+          detail.classList.add('is-swapping');
+          clearTimeout(swapTimer);
+          swapTimer = setTimeout(doRender, 200);
+        } else {
+          doRender();
+        }
+
+        // Keep hash in sync (without polluting history) — useful for deep linking
+        if (!opts2.fromHash) {
+          try {
+            history.replaceState(null, '', '#cap=' + id);
+          } catch (e) { /* noop */ }
+        }
+      }
+
+      function closePanel() {
+        if (!activeId) return;
+        activeId = null;
+        sectionRoot.setAttribute('data-active-cap', '');
+        applyActiveCardStyles(null);
+        shell.classList.remove('is-open');
+        shell.setAttribute('aria-hidden', 'true');
+        // strip hash
+        try {
+          if (location.hash && location.hash.startsWith('#cap=')) {
+            history.replaceState(null, '', location.pathname + location.search);
+          }
+        } catch (e) { /* noop */ }
+      }
+
+      // Card click + keyboard
+      cards.forEach(card => {
+        const id = card.dataset.capId;
+        card.addEventListener('click', (ev) => {
+          // If user clicked a real link inside (we made the link a hash anchor, intercept it here)
+          const link = ev.target.closest('[data-cap-link]');
+          if (link) {
+            ev.preventDefault();
+          }
+          openCapability(id);
+        });
+        card.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter' || ev.key === ' ') {
+            ev.preventDefault();
+            openCapability(id);
+          }
+        });
+      });
+
+      // Esc to close
+      document.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Escape' && activeId) {
+          closePanel();
+        }
+      });
+
+      // Deep link support: ?#cap=02 on load
+      function readHash() {
+        const m = (location.hash || '').match(/cap=(\d{2})/i);
+        return m ? m[1] : null;
+      }
+      const initial = readHash();
+      if (initial && CAPS[initial]) {
+        // open without scroll smoothing being interrupted by reveal animations
+        setTimeout(() => openCapability(initial, { scroll: true, fromHash: true }), 350);
+      }
+      window.addEventListener('hashchange', () => {
+        const id = readHash();
+        if (id && CAPS[id]) {
+          if (id !== activeId) openCapability(id, { fromHash: true });
+        } else if (activeId) {
+          closePanel();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

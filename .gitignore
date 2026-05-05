@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.next/
+out/
+.vercel/
+.env
+.env.local
+.env*.local
+*.pem
+
+# Project-specific
+temporary screenshots/
+.DS_Store
+Thumbs.db

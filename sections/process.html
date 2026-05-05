@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AQL — Process / Four steps to one unified core.</title>
+  <meta name="description" content="The AQL process: discover, audit, integrate, operate. Six to ten weeks from chaos to a single source of truth." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0B0A08;
+      --bg-elevated: #15130F;
+      --bg-floating: #1F1B14;
+      --border: #2A2620;
+      --border-bright: #3A3527;
+      --cream: #EDE6D3;
+      --cream-dim: #B8B0A0;
+      --muted: #6B6557;
+      --lime: #CCFF33;
+      --lime-dim: #A8D628;
+      --amber: #E97451;
+      --danger: #FF4538;
+    }
+    * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    html, body { background: var(--bg); }
+    body {
+      color: var(--cream);
+      font-family: 'Manrope', sans-serif;
+      overflow-x: hidden;
+    }
+    .font-serif-italic { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; }
+    .font-serif { font-family: 'Instrument Serif', serif; font-weight: 400; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Grain overlay */
+    .grain::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+      opacity: 0.08; mix-blend-mode: overlay; z-index: 100;
+    }
+
+    /* Atmospheric glow */
+    .section-glow {
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 70% 45% at 25% 18%, rgba(204, 255, 51, 0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 55% 40% at 80% 70%, rgba(233, 116, 81, 0.05) 0%, transparent 60%),
+        radial-gradient(ellipse 90% 50% at 50% 100%, rgba(237, 230, 211, 0.03) 0%, transparent 60%);
+    }
+
+    /* Faint tech grid */
+    .tech-grid {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(237, 230, 211, 0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(237, 230, 211, 0.022) 1px, transparent 1px);
+      background-size: 80px 80px;
+      mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black, transparent 90%);
+    }
+
+    .tracking-spec { letter-spacing: 0.16em; }
+    .tracking-display { letter-spacing: -0.035em; }
+
+    /* Highlight under emphasis */
+    .lime-underline {
+      background-image: linear-gradient(transparent 76%, rgba(204, 255, 51, 0.55) 76%, rgba(204, 255, 51, 0.55) 92%, transparent 92%);
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      padding: 0 0.04em;
+    }
+
+    /* Corner registration marks */
+    .corner {
+      position: absolute; width: 18px; height: 18px;
+      pointer-events: none;
+    }
+    .corner::before, .corner::after {
+      content: ''; position: absolute; background: var(--cream-dim); opacity: 0.55;
+    }
+    .corner.tl { top: 14px; left: 14px; }
+    .corner.tl::before { top: 0; left: 0; width: 18px; height: 1px; }
+    .corner.tl::after  { top: 0; left: 0; width: 1px; height: 18px; }
+    .corner.tr { top: 14px; right: 14px; }
+    .corner.tr::before { top: 0; right: 0; width: 18px; height: 1px; }
+    .corner.tr::after  { top: 0; right: 0; width: 1px; height: 18px; }
+    .corner.bl { bottom: 14px; left: 14px; }
+    .corner.bl::before { bottom: 0; left: 0; width: 18px; height: 1px; }
+    .corner.bl::after  { bottom: 0; left: 0; width: 1px; height: 18px; }
+    .corner.br { bottom: 14px; right: 14px; }
+    .corner.br::before { bottom: 0; right: 0; width: 18px; height: 1px; }
+    .corner.br::after  { bottom: 0; right: 0; width: 1px; height: 18px; }
+
+    /* Mono pill */
+    .pill {
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      padding: 0.42rem 0.7rem;
+      background: rgba(11, 10, 8, 0.65);
+      border: 1px solid var(--border-bright);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem; font-weight: 500;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--cream-dim);
+    }
+    .pill-lime { color: var(--bg); background: var(--lime); border-color: transparent;
+      box-shadow: 0 0 0 1px rgba(204,255,51,0.45), 0 8px 20px -8px rgba(204,255,51,0.4);
+    }
+    .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cream-dim); }
+    .pill-dot.lime { background: var(--lime); box-shadow: 0 0 8px var(--lime); }
+
+    /* Step numbers */
+    .step-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 300;
+      font-size: clamp(4rem, 7vw, 6rem);
+      line-height: 0.9;
+      color: var(--cream-dim);
+      letter-spacing: -0.04em;
+      transition: color 0.6s cubic-bezier(0.2, 0.8, 0.25, 1);
+      position: relative;
+      display: inline-block;
+    }
+    .step-row.is-active .step-num {
+      color: var(--cream);
+    }
+    .step-num::after {
+      content: '';
+      position: absolute;
+      top: 0.3em; right: -0.6em;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--lime);
+      box-shadow: 0 0 14px rgba(204,255,51,0.8), 0 0 28px rgba(204,255,51,0.4);
+      opacity: 0;
+      transform: scale(0.4);
+      transition: opacity 0.5s cubic-bezier(0.2, 0.8, 0.25, 1), transform 0.5s cubic-bezier(0.2, 0.8, 0.25, 1);
+    }
+    .step-row.is-active .step-num::after {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Step left rail */
+    .step-rail {
+      position: absolute; left: 0; top: 0; bottom: 0;
+      width: 1px;
+      background: var(--border);
+    }
+    .step-rail-fill {
+      position: absolute; left: 0; top: 0;
+      width: 1px;
+      background: linear-gradient(180deg, transparent 0%, var(--lime) 30%, var(--lime) 70%, transparent 100%);
+      transform: scaleY(0);
+      transform-origin: top center;
+      transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.25, 1);
+      height: 100%;
+    }
+    .step-row.is-active .step-rail-fill { transform: scaleY(1); }
+
+    /* Step body fade */
+    .step-body {
+      opacity: 0.45;
+      transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.25, 1);
+    }
+    .step-row.is-active .step-body { opacity: 1; }
+
+    /* Deliverable list */
+    .deliv-item {
+      display: grid; grid-template-columns: 16px 1fr; gap: 0.85rem;
+      align-items: baseline;
+      padding: 0.55rem 0;
+      border-top: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--cream-dim);
+    }
+    .deliv-item:last-child { border-bottom: 1px solid var(--border); }
+    .deliv-mark {
+      font-size: 0.62rem;
+      color: var(--lime);
+      letter-spacing: 0.16em;
+    }
+    .step-row.is-active .deliv-item { color: var(--cream); }
+
+    /* Sticky illustration container */
+    .stick-wrap {
+      position: sticky; top: 100px;
+      height: calc(100vh - 140px);
+      max-height: 720px;
+      display: flex; flex-direction: column;
+    }
+
+    .illus-stage {
+      position: relative;
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      background: radial-gradient(ellipse 90% 90% at 50% 45%, #15130F 0%, #0D0B09 60%, #08070612 100%);
+    }
+
+    .illus-scene {
+      position: absolute; inset: 0;
+      opacity: 0;
+      transform: scale(1.02);
+      transition: opacity 0.7s cubic-bezier(0.2, 0.8, 0.25, 1), transform 1.2s cubic-bezier(0.2, 0.8, 0.25, 1);
+      pointer-events: none;
+    }
+    .illus-scene.is-active {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Scene 1 — Discover: scattered platform tags being circled */
+    @keyframes sweep {
+      0%   { transform: translate(-10%, -10%) rotate(0deg); }
+      50%  { transform: translate(8%, 6%) rotate(5deg); }
+      100% { transform: translate(-10%, -10%) rotate(0deg); }
+    }
+    .magnify-ring {
+      animation: sweep 7s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    /* Scene 2 — Audit: bar chart pulse */
+    @keyframes barPulse {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+    }
+    .bar-active { animation: barPulse 2.4s ease-in-out infinite; }
+
+    /* Scene 3 — Integrate: connecting nodes */
+    @keyframes drawDash {
+      from { stroke-dashoffset: 200; }
+      to   { stroke-dashoffset: 0; }
+    }
+    .integrate-line {
+      stroke-dasharray: 4 4;
+      animation: drawDash 3.5s linear infinite;
+    }
+    @keyframes nodePulse {
+      0%, 100% { opacity: 0.75; r: 5; }
+      50% { opacity: 1; r: 6; }
+    }
+    .integrate-node circle.core { animation: nodePulse 2.6s ease-in-out infinite; }
+
+    /* Scene 4 — Operate: dashboard preview */
+    @keyframes sparkPulse {
+      0% { stroke-dashoffset: 800; }
+      100% { stroke-dashoffset: 0; }
+    }
+    .spark-line {
+      stroke-dasharray: 800;
+      animation: sparkPulse 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.4); }
+    }
+    .live-dot { animation: pulseDot 1.8s ease-in-out infinite; transform-origin: center; }
+
+    /* Scene labels */
+    .scene-label {
+      position: absolute; top: 18px; left: 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--cream-dim);
+      display: flex; align-items: center; gap: 0.55rem;
+      z-index: 5;
+    }
+    .scene-label .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--lime);
+      box-shadow: 0 0 8px var(--lime);
+    }
+
+    .scene-meta {
+      position: absolute; bottom: 18px; left: 24px; right: 24px;
+      display: flex; justify-content: space-between; align-items: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--muted);
+      z-index: 5;
+    }
+
+    /* Progress chip on illustration */
+    .progress-chip {
+      position: absolute; top: 18px; right: 24px; z-index: 5;
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      padding: 0.42rem 0.7rem;
+      background: rgba(11, 10, 8, 0.7);
+      border: 1px solid var(--border-bright);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem; font-weight: 500;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--cream);
+      backdrop-filter: blur(10px);
+    }
+
+    /* Step rail tick markers down the right side */
+    .step-progress {
+      position: sticky; top: 50%;
+      transform: translateY(-50%);
+      display: flex; flex-direction: column; gap: 14px;
+      align-items: center;
+      pointer-events: none;
+    }
+    .step-tick {
+      width: 28px; height: 1px;
+      background: var(--border-bright);
+      transition: background 0.4s, width 0.4s cubic-bezier(0.2, 0.8, 0.25, 1);
+    }
+    .step-tick.is-active {
+      background: var(--lime);
+      width: 44px;
+    }
+
+    /* Fade-up reveal for static block */
+    .fade-up { opacity: 0; transform: translateY(14px); animation: fadeup 1s cubic-bezier(0.2, 0.8, 0.25, 1) forwards; }
+    .fade-up.d1 { animation-delay: 0.18s; }
+    .fade-up.d2 { animation-delay: 0.34s; }
+    .fade-up.d3 { animation-delay: 0.5s; }
+    @keyframes fadeup { to { opacity: 1; transform: translateY(0); } }
+
+    /* Continue link */
+    .continue-link {
+      display: inline-flex; align-items: center; gap: 0.85rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--cream);
+    }
+    .continue-link .bar {
+      display: block; height: 1px; width: 36px;
+      background: var(--cream);
+      transition: width 0.35s cubic-bezier(0.2, 0.8, 0.25, 1);
+      transform-origin: left;
+    }
+    .continue-link:hover .bar { width: 64px; }
+    .continue-link:focus-visible { outline: 2px solid var(--lime); outline-offset: 4px; border-radius: 4px; }
+
+    /* Reduce motion respect */
+    @media (prefers-reduced-motion: reduce) {
+      .magnify-ring, .bar-active, .integrate-line, .integrate-node circle.core, .spark-line, .live-dot { animation: none; }
+    }
+
+    /* Layout helpers */
+    .step-row { min-height: 80vh; }
+
+    /* ============== MOBILE REBUILD (<lg / 1024px) ==============
+       Desktop uses a sticky-left illustration column. On mobile we
+       drop sticky entirely: hide the aside, render an inline
+       illustration above each step's text, and let step rows be
+       their natural content height. JS clones each scene SVG into
+       the per-step mount on init when viewport is narrow. */
+    .mobile-illus { display: none; }
+    @media (max-width: 1023px) {
+      /* Use dynamic viewport unit on iOS Safari */
+      .step-row { min-height: auto; }
+
+      /* Force the 12-col grids to a single column on mobile.
+         Tailwind's grid-cols-12 + gap-8 reserves 11 gap-tracks (~352px) which
+         overflows iPhone SE (272px usable). Since every child is col-span-12,
+         collapse to one column with vertical gap only. */
+      #process header.grid,
+      #process .grid.grid-cols-12 {
+        grid-template-columns: minmax(0, 1fr) !important;
+        column-gap: 0 !important;
+      }
+
+      /* Hide the desktop sticky aside entirely on mobile */
+      .stick-wrap-aside { display: none !important; }
+
+      /* Show inline illustration block per step */
+      .mobile-illus {
+        display: block;
+        position: relative;
+        margin: 0 0 1.25rem;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+        background: radial-gradient(ellipse 90% 90% at 50% 45%, #15130F 0%, #0D0B09 60%, #08070612 100%);
+        height: 320px;
+      }
+      @media (max-width: 380px) {
+        .mobile-illus { height: 280px; border-radius: 14px; }
+      }
+      .mobile-illus .illus-scene {
+        opacity: 1;
+        transform: none;
+        position: absolute; inset: 0;
+      }
+      .mobile-illus .scene-label {
+        top: 10px; left: 12px;
+        font-size: 8.5px;
+        padding: 3px 7px 3px 6px;
+        background: rgba(11, 10, 8, 0.85);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+      .mobile-illus .progress-chip {
+        top: 12px; right: 14px;
+        font-size: 0.55rem;
+        padding: 0.32rem 0.55rem;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+      .mobile-illus .scene-meta {
+        /* SVG already includes its own bottom annotation, so suppress
+           the duplicated meta strip on mobile to avoid overlap. */
+        display: none;
+      }
+      .mobile-illus .corner { width: 14px; height: 14px; }
+      .mobile-illus .corner.tl { top: 10px; left: 10px; }
+      .mobile-illus .corner.tr { top: 10px; right: 10px; }
+      .mobile-illus .corner.bl { bottom: 10px; left: 10px; }
+      .mobile-illus .corner.br { bottom: 10px; right: 10px; }
+
+      /* Mobile per-step phase tag (above the inline illus) */
+      .mobile-step-tag {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 9.5px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--cream-dim);
+        margin-bottom: 0.7rem;
+      }
+      .mobile-step-tag .left { display: flex; align-items: center; gap: 0.55rem; }
+      .mobile-step-tag .dot {
+        width: 6px; height: 6px; border-radius: 50%;
+        background: var(--lime);
+        box-shadow: 0 0 8px var(--lime);
+      }
+      .mobile-step-tag .phase-num { color: var(--muted); }
+
+      /* Tighten step layout on mobile: reduce left padding, drop big bottom gap */
+      .step-row { padding-left: 0 !important; padding-bottom: 3.5rem !important; }
+      .step-row .step-rail-wrap { display: none; }
+
+      /* Active fade still works but is gentler — every step is visible */
+      .step-body { opacity: 1; }
+      .step-row.is-active .step-body { opacity: 1; }
+      .step-row:not(.is-active) .step-num { color: var(--cream-dim); }
+
+      /* Step number — keep prominent at start of each step */
+      .step-num { font-size: clamp(3.5rem, 14vw, 5rem); }
+
+      /* Heading: scale down a touch, prevent awkward two-word lines */
+      .step-row h3 { font-size: clamp(1.7rem, 7vw, 2.4rem) !important; line-height: 1.08; }
+
+      /* Section header — keep italic + lime-underline tidy at narrow widths */
+      #process header h2 { font-size: clamp(2rem, 9vw, 3rem); line-height: 1.05; }
+
+      /* Deliverables — tighten so they fit at 320px */
+      .deliv-item {
+        font-size: 0.62rem;
+        gap: 0.6rem;
+        grid-template-columns: 14px 1fr;
+        padding: 0.5rem 0;
+      }
+      .deliv-mark { font-size: 0.55rem; }
+
+      /* WK pill — verify positioning, keep tap-friendly */
+      .pill { font-size: 0.58rem; padding: 0.4rem 0.65rem; }
+
+      /* Tap targets >= 44px */
+      .continue-link { padding: 0.6rem 0; min-height: 44px; }
+    }
+    @media (max-width: 360px) {
+      .deliv-item { font-size: 0.58rem; letter-spacing: 0.08em; }
+      .step-row h3 { font-size: 1.55rem !important; }
+    }
+  </style>
+</head>
+<body class="grain min-h-screen relative">
+  <div class="tech-grid"></div>
+
+  <!-- ============== NAV ============== -->
+  <nav class="relative z-20 max-w-[1440px] mx-auto px-6 lg:px-12 pt-7 pb-2 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-2.5 group">
+      <span class="block w-7 h-7 rounded-full relative" style="background: radial-gradient(circle at 32% 28%, #F4FFB0, var(--lime) 38%, var(--lime-dim) 100%); box-shadow: 0 0 18px -2px rgba(204,255,51,0.55);"></span>
+      <span class="font-serif-italic text-[1.55rem] tracking-display text-[var(--cream)] -ml-0.5">aql</span>
+      <span class="hidden sm:inline font-mono text-[10px] tracking-spec uppercase text-[var(--muted)] ml-2 mt-1">/ studio</span>
+    </a>
+    <ul class="hidden md:flex items-center gap-9 font-mono text-[11px] tracking-spec uppercase text-[var(--cream-dim)]">
+      <li><a href="/#work" class="hover:text-[var(--cream)] transition-colors duration-200">Work<sup class="text-[var(--lime)] ml-1 text-[8px]">12</sup></a></li>
+      <li><a href="#process" class="text-[var(--cream)]">Process</a></li>
+      <li><a href="/#stack" class="hover:text-[var(--cream)] transition-colors duration-200">Stack</a></li>
+      <li><a href="/#contact" class="hover:text-[var(--cream)] transition-colors duration-200">Contact</a></li>
+    </ul>
+    <div class="hidden md:flex items-center gap-3 font-mono text-[10px] tracking-spec uppercase">
+      <span class="text-[var(--muted)]">EST.</span>
+      <span class="text-[var(--cream-dim)]">2021</span>
+      <span class="text-[var(--muted)]">·</span>
+      <span class="text-[var(--cream-dim)]">NL / EU</span>
+    </div>
+  </nav>
+
+  <!-- ============== SECTION HEADER ============== -->
+  <section id="process" class="relative">
+    <div class="section-glow"></div>
+
+    <header class="relative z-10 max-w-[1440px] mx-auto px-6 lg:px-12 pt-16 lg:pt-24 pb-12 lg:pb-20 grid grid-cols-12 gap-x-0 gap-y-8 lg:gap-10">
+      <div class="col-span-12 lg:col-span-7 flex flex-col gap-6">
+        <div class="fade-up flex items-center gap-3 font-mono text-[10.5px] tracking-spec uppercase text-[var(--cream-dim)]">
+          <span class="block w-7 h-px bg-[var(--cream-dim)]"></span>
+          <span>Fig.04 / The Process</span>
+        </div>
+        <h2 class="fade-up d1 font-serif text-[clamp(2.4rem,5vw,4.4rem)] leading-[1.0] tracking-display text-[var(--cream)]">
+          Four steps. Six to ten weeks.<br/>
+          <span class="font-serif-italic">One <span class="lime-underline">unified</span> core.</span>
+        </h2>
+      </div>
+      <div class="col-span-12 lg:col-span-5 flex flex-col justify-end gap-5">
+        <p class="fade-up d2 text-[var(--cream-dim)] text-[1.02rem] leading-[1.65] max-w-[44ch]">
+          Engagement-light, hands-on with the operators. We don't run agency theatre — we sit beside your team, audit what's already running, then ship the connective tissue your stack should have had on day one.
+        </p>
+        <div class="fade-up d3 flex flex-wrap items-center gap-3">
+          <span class="pill"><span class="pill-dot lime"></span>4 PHASES · 6–10 WK</span>
+          <span class="pill">2 OPERATORS · 1 PM</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============== TIMELINE GRID ============== -->
+    <div class="relative max-w-[1440px] mx-auto px-6 lg:px-12 pb-24 grid grid-cols-12 gap-x-0 gap-y-8 lg:gap-12">
+
+      <!-- LEFT: Sticky illustration column (5/12) — DESKTOP ONLY -->
+      <aside class="stick-wrap-aside hidden lg:block lg:col-span-5 relative">
+        <div class="stick-wrap">
+
+          <!-- Top spec row -->
+          <div class="flex items-center justify-between font-mono text-[10px] tracking-spec uppercase text-[var(--cream-dim)] mb-4">
+            <span class="flex items-center gap-2"><span class="block w-1.5 h-1.5 rounded-full bg-[var(--lime)]" style="box-shadow:0 0 8px var(--lime);"></span> Fig.04 — Process Map</span>
+            <span class="text-[var(--muted)]" id="phase-counter">PHASE 01 / 04</span>
+          </div>
+
+          <!-- Illustration stage -->
+          <div class="illus-stage relative">
+
+            <!-- corner registration marks -->
+            <span class="corner tl" aria-hidden="true"></span>
+            <span class="corner tr" aria-hidden="true"></span>
+            <span class="corner bl" aria-hidden="true"></span>
+            <span class="corner br" aria-hidden="true"></span>
+
+            <!-- floating title (changes per scene) -->
+            <div class="scene-label">
+              <span class="dot"></span>
+              <span id="scene-title">DISCOVER · MAPPING THE STACK</span>
+            </div>
+            <div class="progress-chip">
+              <span id="scene-time">WK 01–02</span>
+            </div>
+            <div class="scene-meta">
+              <span id="scene-meta-left">SCANNING</span>
+              <span id="scene-meta-mid">12 PLATFORMS</span>
+              <span id="scene-meta-right">T −∞ → T+</span>
+            </div>
+
+            <!-- ============ SCENE 1: DISCOVER ============ -->
+            <div class="illus-scene is-active" data-scene="1">
+              <svg viewBox="0 0 600 540" class="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid meet" aria-label="Discover scene: scattered platform markers being inspected by a magnifying ring">
+                <defs>
+                  <radialGradient id="discGlow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#EDE6D3" stop-opacity="0.10"/>
+                    <stop offset="100%" stop-color="#EDE6D3" stop-opacity="0"/>
+                  </radialGradient>
+                </defs>
+                <!-- crosshair -->
+                <g opacity="0.25" stroke="#3A3527" stroke-width="0.6">
+                  <line x1="0" y1="270" x2="600" y2="270" stroke-dasharray="1 7"/>
+                  <line x1="300" y1="0" x2="300" y2="540" stroke-dasharray="1 7"/>
+                </g>
+                <!-- platform markers (scattered text-style) -->
+                <g font-family="JetBrains Mono" font-size="11" letter-spacing="1.4" fill="#B8B0A0">
+                  <g transform="translate(110,120)">
+                    <circle r="3" fill="#EDE6D3"/>
+                    <text x="10" y="4">SHOPIFY</text>
+                    <text x="10" y="18" font-size="7" fill="#6B6557">CHANNEL</text>
+                  </g>
+                  <g transform="translate(420,90)">
+                    <circle r="3" fill="#EDE6D3"/>
+                    <text x="10" y="4">BOL.COM</text>
+                    <text x="10" y="18" font-size="7" fill="#6B6557">CHANNEL</text>
+                  </g>
+                  <g transform="translate(80,260)">
+                    <circle r="3" fill="#EDE6D3"/>
+                    <text x="10" y="4">AMAZON</text>
+                    <text x="10" y="18" font-size="7" fill="#6B6557">CHANNEL</text>
+                  </g>
+                  <g transform="translate(460,210)">
+                    <circle r="3" fill="#EDE6D3"/>
+                    <text x="10" y="4">KLAVIYO</text>
+                    <text x="10" y="18" font-size="7" fill="#6B6557">MARKETING</text>
+                  </g>
+                  <g transform="translate(180,380)">
+                    <circle r="3" fill="#EDE6D3"/>
+                    <text x="10" y="4">PAYMENTS</text>
+                    <text x="10" y="18" font-size="7" fill="#6B6557">FINANCE</text>
+                  </g>
+                  <g transform="translate(380,440)">
+                    <circle r="3" fill="#EDE6D3"/>
+                    <text x="10" y="4">FULFILMENT</text>
+                    <text x="10" y="18" font-size="7" fill="#6B6557">OPERATIONS</text>
+                  </g>
+                  <g transform="translate(260,180)">
+                    <circle r="3" fill="#EDE6D3"/>
+                    <text x="10" y="4">META ADS</text>
+                    <text x="10" y="18" font-size="7" fill="#6B6557">MARKETING</text>
+                  </g>
+                  <g transform="translate(330,340)">
+                    <circle r="3" fill="#EDE6D3"/>
+                    <text x="10" y="4">INVENTORY</text>
+                    <text x="10" y="18" font-size="7" fill="#6B6557">OPERATIONS</text>
+                  </g>
+                  <g transform="translate(120,420)" opacity="0.55">
+                    <circle r="2.5" fill="#B8B0A0"/>
+                    <text x="9" y="3" fill="#6B6557">TEMU</text>
+                  </g>
+                  <g transform="translate(490,360)" opacity="0.55">
+                    <circle r="2.5" fill="#B8B0A0"/>
+                    <text x="9" y="3" fill="#6B6557">NOON</text>
+                  </g>
+                  <g transform="translate(40,180)" opacity="0.55">
+                    <circle r="2.5" fill="#B8B0A0"/>
+                    <text x="9" y="3" fill="#6B6557">TIKTOK</text>
+                  </g>
+                  <g transform="translate(380,30)" opacity="0.45">
+                    <circle r="2.5" fill="#B8B0A0"/>
+                    <text x="9" y="3" fill="#6B6557">EXACT</text>
+                  </g>
+                </g>
+
+                <!-- magnifying glass ring sweeping -->
+                <g class="magnify-ring">
+                  <g transform="translate(300,270)">
+                    <circle r="120" fill="url(#discGlow)" stroke="#EDE6D3" stroke-width="1.4" stroke-opacity="0.85"/>
+                    <circle r="120" fill="none" stroke="#CCFF33" stroke-width="0.8" stroke-opacity="0.55" stroke-dasharray="2 6"/>
+                    <circle r="118" fill="none" stroke="#3A3527" stroke-width="0.5"/>
+                    <!-- crosshair inside lens -->
+                    <line x1="-120" y1="0" x2="120" y2="0" stroke="#EDE6D3" stroke-opacity="0.18" stroke-width="0.5"/>
+                    <line x1="0" y1="-120" x2="0" y2="120" stroke="#EDE6D3" stroke-opacity="0.18" stroke-width="0.5"/>
+                    <!-- handle -->
+                    <line x1="85" y1="85" x2="160" y2="160" stroke="#EDE6D3" stroke-width="2" stroke-opacity="0.7" stroke-linecap="round"/>
+                    <!-- center crosshair micro -->
+                    <circle r="4" fill="none" stroke="#CCFF33" stroke-width="1"/>
+                    <circle r="1.6" fill="#CCFF33"/>
+                  </g>
+                </g>
+
+                <!-- scan annotation -->
+                <g font-family="JetBrains Mono" font-size="8" letter-spacing="1.4" fill="#6B6557">
+                  <text x="20" y="510">SCAN · 12 PLATFORMS · 7 GAPS</text>
+                </g>
+              </svg>
+            </div>
+
+            <!-- ============ SCENE 2: AUDIT ============ -->
+            <div class="illus-scene" data-scene="2">
+              <svg viewBox="0 0 600 540" class="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid meet" aria-label="Audit scene: vertical bar chart showing reconciliation gaps">
+                <!-- baseline grid -->
+                <g opacity="0.30" stroke="#3A3527" stroke-width="0.5" fill="none">
+                  <line x1="60" y1="120" x2="540" y2="120" stroke-dasharray="2 6"/>
+                  <line x1="60" y1="220" x2="540" y2="220" stroke-dasharray="2 6"/>
+                  <line x1="60" y1="320" x2="540" y2="320" stroke-dasharray="2 6"/>
+                  <line x1="60" y1="420" x2="540" y2="420"/>
+                </g>
+                <!-- y-axis labels -->
+                <g font-family="JetBrains Mono" font-size="8" letter-spacing="1.2" fill="#6B6557">
+                  <text x="20" y="124">100</text>
+                  <text x="24" y="224">75</text>
+                  <text x="24" y="324">50</text>
+                  <text x="24" y="424">0</text>
+                </g>
+
+                <!-- bars (terracotta gradient) -->
+                <defs>
+                  <linearGradient id="auditBar" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#E97451"/>
+                    <stop offset="100%" stop-color="#9A4A30"/>
+                  </linearGradient>
+                </defs>
+                <g>
+                  <!-- bar 1 -->
+                  <rect x="80" y="180" width="44" height="240" fill="url(#auditBar)" opacity="0.92" class="bar-active"/>
+                  <rect x="80" y="180" width="44" height="3" fill="#FFB897"/>
+                  <text x="102" y="170" text-anchor="middle" font-family="JetBrains Mono" font-size="7.5" letter-spacing="1.2" fill="#E97451">68%</text>
+                  <text x="102" y="438" text-anchor="middle" font-family="JetBrains Mono" font-size="7" letter-spacing="1.2" fill="#6B6557">RECON</text>
+
+                  <!-- bar 2 -->
+                  <rect x="160" y="245" width="44" height="175" fill="url(#auditBar)" opacity="0.85"/>
+                  <rect x="160" y="245" width="44" height="3" fill="#FFB897"/>
+                  <text x="182" y="235" text-anchor="middle" font-family="JetBrains Mono" font-size="7.5" letter-spacing="1.2" fill="#E97451">52%</text>
+                  <text x="182" y="438" text-anchor="middle" font-family="JetBrains Mono" font-size="7" letter-spacing="1.2" fill="#6B6557">SYNC</text>
+
+                  <!-- bar 3 -->
+                  <rect x="240" y="135" width="44" height="285" fill="url(#auditBar)" opacity="0.95" class="bar-active"/>
+                  <rect x="240" y="135" width="44" height="3" fill="#FFB897"/>
+                  <text x="262" y="125" text-anchor="middle" font-family="JetBrains Mono" font-size="7.5" letter-spacing="1.2" fill="#E97451">82%</text>
+                  <text x="262" y="438" text-anchor="middle" font-family="JetBrains Mono" font-size="7" letter-spacing="1.2" fill="#6B6557">MANUAL</text>
+
+                  <!-- bar 4 -->
+                  <rect x="320" y="290" width="44" height="130" fill="url(#auditBar)" opacity="0.78"/>
+                  <rect x="320" y="290" width="44" height="3" fill="#FFB897"/>
+                  <text x="342" y="280" text-anchor="middle" font-family="JetBrains Mono" font-size="7.5" letter-spacing="1.2" fill="#E97451">38%</text>
+                  <text x="342" y="438" text-anchor="middle" font-family="JetBrains Mono" font-size="7" letter-spacing="1.2" fill="#6B6557">FX DRIFT</text>
+
+                  <!-- bar 5 -->
+                  <rect x="400" y="210" width="44" height="210" fill="url(#auditBar)" opacity="0.88"/>
+                  <rect x="400" y="210" width="44" height="3" fill="#FFB897"/>
+                  <text x="422" y="200" text-anchor="middle" font-family="JetBrains Mono" font-size="7.5" letter-spacing="1.2" fill="#E97451">61%</text>
+                  <text x="422" y="438" text-anchor="middle" font-family="JetBrains Mono" font-size="7" letter-spacing="1.2" fill="#6B6557">SHIP</text>
+
+                  <!-- bar 6 -->
+                  <rect x="480" y="265" width="44" height="155" fill="url(#auditBar)" opacity="0.82"/>
+                  <rect x="480" y="265" width="44" height="3" fill="#FFB897"/>
+                  <text x="502" y="255" text-anchor="middle" font-family="JetBrains Mono" font-size="7.5" letter-spacing="1.2" fill="#E97451">45%</text>
+                  <text x="502" y="438" text-anchor="middle" font-family="JetBrains Mono" font-size="7" letter-spacing="1.2" fill="#6B6557">PII</text>
+                </g>
+
+                <!-- annotation arrow on highest bar -->
+                <g>
+                  <line x1="262" y1="80" x2="262" y2="125" stroke="#EDE6D3" stroke-width="0.6" stroke-dasharray="2 3" opacity="0.7"/>
+                  <text x="262" y="70" text-anchor="middle" font-family="Instrument Serif" font-style="italic" font-size="14" fill="#EDE6D3">priority rebuild</text>
+                </g>
+                <!-- chart label -->
+                <text x="60" y="42" font-family="JetBrains Mono" font-size="9" letter-spacing="1.4" fill="#B8B0A0">RECONCILIATION GAPS · OPERATIONAL DEBT</text>
+                <text x="60" y="60" font-family="JetBrains Mono" font-size="7" letter-spacing="1.2" fill="#6B6557">% OF FAILED OR MANUAL HANDOFFS · LAST 90 DAYS</text>
+
+                <text x="20" y="510" font-family="JetBrains Mono" font-size="8" letter-spacing="1.4" fill="#6B6557">AUDIT · 6 SYSTEMS · ROI €74K/YR</text>
+              </svg>
+            </div>
+
+            <!-- ============ SCENE 3: INTEGRATE ============ -->
+            <div class="illus-scene" data-scene="3">
+              <svg viewBox="0 0 600 540" class="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid meet" aria-label="Integrate scene: nodes connecting via lime lines into a unified core">
+                <defs>
+                  <radialGradient id="intGlow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#CCFF33" stop-opacity="0.30"/>
+                    <stop offset="60%" stop-color="#CCFF33" stop-opacity="0.06"/>
+                    <stop offset="100%" stop-color="#CCFF33" stop-opacity="0"/>
+                  </radialGradient>
+                  <filter id="intBlur"><feGaussianBlur stdDeviation="4"/></filter>
+                </defs>
+
+                <circle cx="300" cy="270" r="200" fill="url(#intGlow)"/>
+                <!-- guide rings -->
+                <g opacity="0.32" stroke="#3A3527" stroke-width="0.5" fill="none">
+                  <circle cx="300" cy="270" r="100" stroke-dasharray="2 5"/>
+                  <circle cx="300" cy="270" r="180" stroke-dasharray="2 6"/>
+                </g>
+
+                <!-- connecting lines (animated dash) -->
+                <g stroke="#CCFF33" stroke-width="1" fill="none" opacity="0.85">
+                  <line x1="300" y1="270" x2="120" y2="120" class="integrate-line"/>
+                  <line x1="300" y1="270" x2="480" y2="120" class="integrate-line" style="animation-delay:0.4s;"/>
+                  <line x1="300" y1="270" x2="120" y2="420" class="integrate-line" style="animation-delay:0.8s;"/>
+                  <line x1="300" y1="270" x2="480" y2="420" class="integrate-line" style="animation-delay:1.2s;"/>
+                  <line x1="300" y1="270" x2="80" y2="270" class="integrate-line" style="animation-delay:1.6s;"/>
+                  <line x1="300" y1="270" x2="520" y2="270" class="integrate-line" style="animation-delay:2.0s;"/>
+                </g>
+
+                <!-- outer nodes -->
+                <g class="integrate-node">
+                  <g transform="translate(120,120)">
+                    <circle r="14" fill="#0B0A08" stroke="#CCFF33" stroke-width="1"/>
+                    <circle r="5" fill="#CCFF33" class="core"/>
+                    <text y="-22" text-anchor="middle" font-family="JetBrains Mono" font-size="7" letter-spacing="1.2" fill="#B8B0A0">SHOPIFY</text>
+                  </g>
+                  <g transform="translate(480,120)">
+                    <circle r="14" fill="#0B0A08" stroke="#CCFF33" stroke-width="1"/>
+                    <circle r="5" fill="#CCFF33" class="core"/>
+                    <text y="-22" text-anchor="middle" font-family="JetBrains Mono" font-size="7" letter-spacing="1.2" fill="#B8B0A0">BOL</text>
+                  </g>
+                  <g transform="translate(80,270)">
+                    <circle r="14" fill="#0B0A08" stroke="#CCFF33" stroke-width="1"/>
+                    <circle r="5" fill="#CCFF33" class="core"/>
+                    <text y="-22" text-anchor="middle" font-family="JetBrains Mono" font-size="7" letter-spacing="1.2" fill="#B8B0A0">FINANCE</text>
+                  </g>
+                  <g transform="translate(520,270)">
+                    <circle r="14" fill="#0B0A08" stroke="#CCFF33" stroke-width="1"/>
+                    <circle r="5" fill="#CCFF33" class="core"/>
+                    <text y="-22" text-anchor="middle" font-family="JetBrains Mono" font-size="7" letter-spacing="1.2" fill="#B8B0A0">AMAZON</text>
+                  </g>
+                  <g transform="translate(120,420)">
+                    <circle r="14" fill="#0B0A08" stroke="#CCFF33" stroke-width="1"/>
+                    <circle r="5" fill="#CCFF33" class="core"/>
+                    <text y="34" text-anchor="middle" font-family="JetBrains Mono" font-size="7" letter-spacing="1.2" fill="#B8B0A0">INVENTORY</text>
+                  </g>
+                  <g transform="translate(480,420)">
+                    <circle r="14" fill="#0B0A08" stroke="#CCFF33" stroke-width="1"/>
+                    <circle r="5" fill="#CCFF33" class="core"/>
+                    <text y="34" text-anchor="middle" font-family="JetBrains Mono" font-size="7" letter-spacing="1.2" fill="#B8B0A0">SHIP</text>
+                  </g>
+                </g>
+
+                <!-- center hub -->
+                <g transform="translate(300,270)">
+                  <circle r="44" fill="#0B0A08" stroke="#CCFF33" stroke-width="1.2" opacity="0.35"/>
+                  <circle r="36" fill="#0B0A08" stroke="#CCFF33" stroke-width="1.5"/>
+                  <circle r="30" fill="#CCFF33"/>
+                  <circle r="30" fill="#CCFF33" filter="url(#intBlur)" opacity="0.55"/>
+                  <text y="3" text-anchor="middle" font-family="Instrument Serif" font-style="italic" font-size="22" fill="#0B0A08" font-weight="500">aql</text>
+                  <text y="62" text-anchor="middle" font-family="JetBrains Mono" font-size="7.5" fill="#8A8578" letter-spacing="2.2">DATA LAYER</text>
+                </g>
+
+                <text x="20" y="510" font-family="JetBrains Mono" font-size="8" letter-spacing="1.4" fill="#6B6557">INTEGRATE · 12 WEBHOOKS · 1 SCHEMA</text>
+              </svg>
+            </div>
+
+            <!-- ============ SCENE 4: OPERATE ============ -->
+            <div class="illus-scene" data-scene="4">
+              <svg viewBox="0 0 600 540" class="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid meet" aria-label="Operate scene: dashboard preview with sparkline and KPI cards">
+                <defs>
+                  <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#CCFF33" stop-opacity="0.35"/>
+                    <stop offset="100%" stop-color="#CCFF33" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+
+                <!-- dashboard window frame -->
+                <rect x="40" y="50" width="520" height="450" rx="14" fill="#15130F" stroke="#3A3527" stroke-width="1"/>
+                <!-- titlebar -->
+                <rect x="40" y="50" width="520" height="38" rx="14" fill="#1F1B14"/>
+                <rect x="40" y="80" width="520" height="8" fill="#1F1B14"/>
+                <line x1="40" y1="88" x2="560" y2="88" stroke="#2A2620" stroke-width="1"/>
+                <!-- traffic lights -->
+                <circle cx="62" cy="69" r="4" fill="#3A3527"/>
+                <circle cx="78" cy="69" r="4" fill="#3A3527"/>
+                <circle cx="94" cy="69" r="4" fill="#3A3527"/>
+                <text x="115" y="73" font-family="JetBrains Mono" font-size="9" letter-spacing="1.4" fill="#B8B0A0">aql · operations console</text>
+                <!-- live dot -->
+                <g transform="translate(530,69)">
+                  <circle r="4" fill="#CCFF33" class="live-dot"/>
+                  <text x="-10" y="3" text-anchor="end" font-family="JetBrains Mono" font-size="7" letter-spacing="1.4" fill="#CCFF33">LIVE</text>
+                </g>
+
+                <!-- KPI cards (3) -->
+                <g>
+                  <rect x="60" y="108" width="148" height="78" rx="6" fill="#0B0A08" stroke="#2A2620"/>
+                  <text x="72" y="128" font-family="JetBrains Mono" font-size="7" letter-spacing="1.4" fill="#6B6557">GMV · 24H</text>
+                  <text x="72" y="160" font-family="Instrument Serif" font-size="22" fill="#EDE6D3">€48.2K</text>
+                  <text x="72" y="178" font-family="JetBrains Mono" font-size="7" letter-spacing="1.2" fill="#CCFF33">▲ 12.4%</text>
+                </g>
+                <g>
+                  <rect x="226" y="108" width="148" height="78" rx="6" fill="#0B0A08" stroke="#2A2620"/>
+                  <text x="238" y="128" font-family="JetBrains Mono" font-size="7" letter-spacing="1.4" fill="#6B6557">ORDERS</text>
+                  <text x="238" y="160" font-family="Instrument Serif" font-size="22" fill="#EDE6D3">1,284</text>
+                  <text x="238" y="178" font-family="JetBrains Mono" font-size="7" letter-spacing="1.2" fill="#CCFF33">▲ 8.1%</text>
+                </g>
+                <g>
+                  <rect x="392" y="108" width="148" height="78" rx="6" fill="#0B0A08" stroke="#2A2620"/>
+                  <text x="404" y="128" font-family="JetBrains Mono" font-size="7" letter-spacing="1.4" fill="#6B6557">SYNC HEALTH</text>
+                  <text x="404" y="160" font-family="Instrument Serif" font-size="22" fill="#EDE6D3">99.8<tspan font-style="italic" fill="#CCFF33">%</tspan></text>
+                  <text x="404" y="178" font-family="JetBrains Mono" font-size="7" letter-spacing="1.2" fill="#B8B0A0">12/12 NODES</text>
+                </g>
+
+                <!-- sparkline panel -->
+                <g>
+                  <rect x="60" y="206" width="480" height="200" rx="6" fill="#0B0A08" stroke="#2A2620"/>
+                  <text x="72" y="226" font-family="JetBrains Mono" font-size="7" letter-spacing="1.4" fill="#6B6557">REVENUE · ROLLING 14D</text>
+                  <text x="528" y="226" text-anchor="end" font-family="JetBrains Mono" font-size="7" letter-spacing="1.2" fill="#CCFF33">+24.6%</text>
+
+                  <!-- gridlines -->
+                  <g opacity="0.25" stroke="#3A3527" stroke-width="0.5">
+                    <line x1="72" y1="260" x2="528" y2="260" stroke-dasharray="2 4"/>
+                    <line x1="72" y1="320" x2="528" y2="320" stroke-dasharray="2 4"/>
+                    <line x1="72" y1="380" x2="528" y2="380"/>
+                  </g>
+
+                  <!-- area fill -->
+                  <path d="M72,360 L100,340 L130,348 L160,322 L190,330 L220,308 L250,316 L280,290 L310,302 L340,275 L370,285 L400,260 L430,272 L460,248 L490,260 L520,235 L528,235 L528,380 L72,380 Z" fill="url(#sparkFill)"/>
+                  <!-- sparkline -->
+                  <path d="M72,360 L100,340 L130,348 L160,322 L190,330 L220,308 L250,316 L280,290 L310,302 L340,275 L370,285 L400,260 L430,272 L460,248 L490,260 L520,235" stroke="#CCFF33" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                  <!-- final dot -->
+                  <circle cx="520" cy="235" r="4" fill="#CCFF33"/>
+                  <circle cx="520" cy="235" r="9" fill="none" stroke="#CCFF33" stroke-width="0.8" opacity="0.5"/>
+                </g>
+
+                <!-- bottom row: alerts -->
+                <g>
+                  <rect x="60" y="426" width="316" height="58" rx="6" fill="#0B0A08" stroke="#2A2620"/>
+                  <text x="72" y="446" font-family="JetBrains Mono" font-size="7" letter-spacing="1.4" fill="#6B6557">ALERTS · LAST 24H</text>
+                  <circle cx="78" cy="466" r="3" fill="#CCFF33"/>
+                  <text x="90" y="470" font-family="JetBrains Mono" font-size="8" letter-spacing="1.2" fill="#B8B0A0">ALL SYSTEMS NOMINAL · 0 OPEN</text>
+
+                  <rect x="392" y="426" width="148" height="58" rx="6" fill="#0B0A08" stroke="#2A2620"/>
+                  <text x="404" y="446" font-family="JetBrains Mono" font-size="7" letter-spacing="1.4" fill="#6B6557">RUNBOOKS</text>
+                  <text x="404" y="472" font-family="Instrument Serif" font-style="italic" font-size="18" fill="#EDE6D3">14 active</text>
+                </g>
+
+                <!-- aql pulse corner indicator -->
+                <g transform="translate(540,492)">
+                  <circle r="14" fill="none" stroke="#CCFF33" stroke-width="0.6" opacity="0.4"/>
+                  <circle r="8" fill="#CCFF33" class="live-dot"/>
+                </g>
+
+                <text x="20" y="525" font-family="JetBrains Mono" font-size="8" letter-spacing="1.4" fill="#6B6557">OPERATE · LIVE · ON RETAINER</text>
+              </svg>
+            </div>
+
+          </div>
+        </div>
+      </aside>
+
+      <!-- RIGHT: Step entries (7/12 desktop, full width mobile) -->
+      <div class="col-span-12 lg:col-span-7 relative">
+        <!-- vertical rail behind steps -->
+        <div class="hidden lg:block absolute left-0 top-0 bottom-0 w-px bg-[var(--border)]"></div>
+
+        <!-- ============ STEP 01 — DISCOVER ============ -->
+        <article class="step-row relative pl-8 lg:pl-14 pb-24" data-step="1">
+          <div class="step-rail-wrap absolute left-0 top-0 bottom-0 hidden lg:block">
+            <div class="step-rail"></div>
+            <div class="step-rail-fill"></div>
+          </div>
+
+          <!-- Mobile-only inline phase tag -->
+          <div class="mobile-step-tag lg:hidden">
+            <span class="left"><span class="dot"></span><span>Fig.04 — Process Map</span></span>
+            <span class="phase-num">PHASE 01 / 04</span>
+          </div>
+
+          <!-- Mobile-only inline illustration (populated by JS) -->
+          <div class="mobile-illus lg:hidden" data-mobile-scene="1" aria-hidden="true"></div>
+
+          <div class="flex items-baseline justify-between gap-6 mb-6">
+            <span class="step-num">01</span>
+            <span class="pill"><span class="pill-dot lime"></span>WK 01–02</span>
+          </div>
+
+          <div class="step-body">
+            <h3 class="font-serif text-[clamp(2rem,3.6vw,3.2rem)] leading-[1.05] tracking-display text-[var(--cream)] mb-5">
+              <span class="font-serif-italic">Discover.</span> <span class="text-[var(--cream-dim)]">Map every wire.</span>
+            </h3>
+            <p class="text-[var(--cream-dim)] text-[1.02rem] leading-[1.7] max-w-[52ch] mb-3">
+              Whatever shape the work takes, we start the same way. We sit with the operators, watch the actual workflow, and inventory every tool that's quietly load-bearing. Nothing assumed.
+            </p>
+            <p class="text-[var(--cream-dim)] text-[1.02rem] leading-[1.7] max-w-[52ch] mb-8">
+              Out the other side: a diagram of the current world you can point at, the friction points named, and a one-pager of what "good" looks like that the team can sign off.
+            </p>
+
+            <div class="font-mono text-[10px] tracking-spec uppercase text-[var(--muted)] mb-3 flex items-center gap-3">
+              <span>Deliverables</span>
+              <span class="block w-8 h-px bg-[var(--border-bright)]"></span>
+              <span>04</span>
+            </div>
+            <ul class="max-w-[52ch]">
+              <li class="deliv-item"><span class="deliv-mark">→</span><span>Stack diagram of the current world</span></li>
+              <li class="deliv-item"><span class="deliv-mark">→</span><span>Named friction points · ranked</span></li>
+              <li class="deliv-item"><span class="deliv-mark">→</span><span>Success criteria · one-pager, signed</span></li>
+              <li class="deliv-item"><span class="deliv-mark">→</span><span>Scope agreement &amp; operator interviews</span></li>
+            </ul>
+          </div>
+        </article>
+
+        <!-- ============ STEP 02 — AUDIT ============ -->
+        <article class="step-row relative pl-8 lg:pl-14 pb-24" data-step="2">
+          <div class="step-rail-wrap absolute left-0 top-0 bottom-0 hidden lg:block">
+            <div class="step-rail"></div>
+            <div class="step-rail-fill"></div>
+          </div>
+
+          <div class="mobile-step-tag lg:hidden">
+            <span class="left"><span class="dot"></span><span>Fig.04 — Process Map</span></span>
+            <span class="phase-num">PHASE 02 / 04</span>
+          </div>
+          <div class="mobile-illus lg:hidden" data-mobile-scene="2" aria-hidden="true"></div>
+
+          <div class="flex items-baseline justify-between gap-6 mb-6">
+            <span class="step-num">02</span>
+            <span class="pill"><span class="pill-dot lime"></span>WK 02–03</span>
+          </div>
+
+          <div class="step-body">
+            <h3 class="font-serif text-[clamp(2rem,3.6vw,3.2rem)] leading-[1.05] tracking-display text-[var(--cream)] mb-5">
+              <span class="font-serif-italic">Audit.</span> <span class="text-[var(--cream-dim)]">Quantify the leak.</span>
+            </h3>
+            <p class="text-[var(--cream-dim)] text-[1.02rem] leading-[1.7] max-w-[52ch] mb-3">
+              We chase the leak. Where are people manually re-typing? Where's reconciliation broken? Which hand-offs fail in silence? We name the cost in euros and hours, not adjectives.
+            </p>
+            <p class="text-[var(--cream-dim)] text-[1.02rem] leading-[1.7] max-w-[52ch] mb-8">
+              The output is a prioritized rebuild list, an honest ROI projection, and a clear call on the one or two surfaces that have to ship first.
+            </p>
+
+            <div class="font-mono text-[10px] tracking-spec uppercase text-[var(--muted)] mb-3 flex items-center gap-3">
+              <span>Deliverables</span>
+              <span class="block w-8 h-px bg-[var(--border-bright)]"></span>
+              <span>04</span>
+            </div>
+            <ul class="max-w-[52ch]">
+              <li class="deliv-item"><span class="deliv-mark">→</span><span>Audit report · 14–22 pages</span></li>
+              <li class="deliv-item"><span class="deliv-mark">→</span><span>Prioritized rebuild list (P0–P3)</span></li>
+              <li class="deliv-item"><span class="deliv-mark">→</span><span>ROI projection · annualized</span></li>
+              <li class="deliv-item"><span class="deliv-mark">→</span><span>Ship-first call · 1–2 surfaces</span></li>
+            </ul>
+          </div>
+        </article>
+
+        <!-- ============ STEP 03 — INTEGRATE ============ -->
+        <article class="step-row relative pl-8 lg:pl-14 pb-24" data-step="3">
+          <div class="step-rail-wrap absolute left-0 top-0 bottom-0 hidden lg:block">
+            <div class="step-rail"></div>
+            <div class="step-rail-fill"></div>
+          </div>
+
+          <div class="mobile-step-tag lg:hidden">
+            <span class="left"><span class="dot"></span><span>Fig.04 — Process Map</span></span>
+            <span class="phase-num">PHASE 03 / 04</span>
+          </div>
+          <div class="mobile-illus lg:hidden" data-mobile-scene="3" aria-hidden="true"></div>
+
+          <div class="flex items-baseline justify-between gap-6 mb-6">
+            <span class="step-num">03</span>
+            <span class="pill"><span class="pill-dot lime"></span>WK 03–07</span>
+          </div>
+
+          <div class="step-body">
+            <h3 class="font-serif text-[clamp(2rem,3.6vw,3.2rem)] leading-[1.05] tracking-display text-[var(--cream)] mb-5">
+              <span class="font-serif-italic">Integrate.</span> <span class="text-[var(--cream-dim)]">Wire the core.</span>
+            </h3>
+            <p class="text-[var(--cream-dim)] text-[1.02rem] leading-[1.7] max-w-[52ch] mb-3">
+              The longest phase. We wire the connective tissue — APIs, webhooks, schemas, queues — and build the normalized data layer underneath (Postgres on Supabase is our usual pick; not the only one). The system starts breathing.
+            </p>
+            <p class="text-[var(--cream-dim)] text-[1.02rem] leading-[1.7] max-w-[52ch] mb-8">
+              Schemas get documented as we go. Operators see the shape of the data weekly, on staging. No surprises at the end.
+            </p>
+
+            <div class="font-mono text-[10px] tracking-spec uppercase text-[var(--muted)] mb-3 flex items-center gap-3">
+              <span>Deliverables</span>
+              <span class="block w-8 h-px bg-[var(--border-bright)]"></span>
+              <span>04</span>
+            </div>
+            <ul class="max-w-[52ch]">
+              <li class="deliv-item"><span class="deliv-mark">→</span><span>Live integrations &amp; webhooks</span></li>
+              <li class="deliv-item"><span class="deliv-mark">→</span><span>Normalized data layer · documented</span></li>
+              <li class="deliv-item"><span class="deliv-mark">→</span><span>Operational surfaces · production-ready</span></li>
+              <li class="deliv-item"><span class="deliv-mark">→</span><span>Staging environment · weekly demos</span></li>
+            </ul>
+          </div>
+        </article>
+
+        <!-- ============ STEP 04 — OPERATE ============ -->
+        <article class="step-row relative pl-8 lg:pl-14 pb-12" data-step="4">
+          <div class="step-rail-wrap absolute left-0 top-0 bottom-0 hidden lg:block">
+            <div class="step-rail"></div>
+            <div class="step-rail-fill"></div>
+          </div>
+
+          <div class="mobile-step-tag lg:hidden">
+            <span class="left"><span class="dot"></span><span>Fig.04 — Process Map</span></span>
+            <span class="phase-num">PHASE 04 / 04</span>
+          </div>
+          <div class="mobile-illus lg:hidden" data-mobile-scene="4" aria-hidden="true"></div>
+
+          <div class="flex items-baseline justify-between gap-6 mb-6">
+            <span class="step-num">04</span>
+            <span class="pill pill-lime">WK 07–10+</span>
+          </div>
+
+          <div class="step-body">
+            <h3 class="font-serif text-[clamp(2rem,3.6vw,3.2rem)] leading-[1.05] tracking-display text-[var(--cream)] mb-5">
+              <span class="font-serif-italic">Operate.</span> <span class="text-[var(--cream-dim)]">Stay close.</span>
+            </h3>
+            <p class="text-[var(--cream-dim)] text-[1.02rem] leading-[1.7] max-w-[52ch] mb-3">
+              The system ships into operators' hands. They get trained — properly, in their own language, with runbooks they actually open. Alerting goes live. We sit in your Slack.
+            </p>
+            <p class="text-[var(--cream-dim)] text-[1.02rem] leading-[1.7] max-w-[52ch] mb-8">
+              Then we stay on retainer to iterate. Every operational layer we've shipped is still running on the same core, two years on.
+            </p>
+
+            <div class="font-mono text-[10px] tracking-spec uppercase text-[var(--muted)] mb-3 flex items-center gap-3">
+              <span>Deliverables</span>
+              <span class="block w-8 h-px bg-[var(--border-bright)]"></span>
+              <span>04</span>
+            </div>
+            <ul class="max-w-[52ch]">
+              <li class="deliv-item"><span class="deliv-mark">→</span><span>Production system · in operators' hands</span></li>
+              <li class="deliv-item"><span class="deliv-mark">→</span><span>Runbooks &amp; role-based training</span></li>
+              <li class="deliv-item"><span class="deliv-mark">→</span><span>Alerting &amp; on-call rotation</span></li>
+              <li class="deliv-item"><span class="deliv-mark">→</span><span>Retainer · ongoing iteration loop</span></li>
+            </ul>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <!-- ============== FOOTER LINK ============== -->
+    <div class="relative max-w-[1440px] mx-auto px-6 lg:px-12 py-16 border-t border-[var(--border)] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+      <div class="font-serif text-[clamp(1.4rem,2.2vw,2rem)] leading-[1.25] text-[var(--cream-dim)] max-w-[48ch]">
+        Same core, two years on. <span class="text-[var(--cream)] font-serif-italic">Quietly running</span> across every brand we've shipped.
+      </div>
+      <a href="#contact" class="continue-link group">
+        <span class="bar"></span>
+        <span>↓ Continue to studio</span>
+      </a>
+    </div>
+  </section>
+
+  <script>
+  (() => {
+    const stepRows = Array.from(document.querySelectorAll('.step-row'));
+    const scenes   = Array.from(document.querySelectorAll('.stick-wrap-aside .illus-scene'));
+
+    // ===== Mobile: clone each scene SVG into its inline per-step mount =====
+    // Runs once on load. Each .mobile-illus[data-mobile-scene] gets an SVG copy
+    // plus its own scene-label / progress-chip / scene-meta so the inline block
+    // is fully self-contained per step on phone-width.
+    const SCENE_META = [
+      null,
+      { title: 'DISCOVER · MAPPING THE STACK',  time: 'WK 01–02', left: 'SCANNING',     mid: '12 PLATFORMS',  right: 'T −∞ → T+' },
+      { title: 'AUDIT · QUANTIFYING GAPS',      time: 'WK 02–03', left: 'MEASURING',    mid: '6 SYSTEMS',     right: 'ROI €74K/YR' },
+      { title: 'INTEGRATE · BUILDING THE CORE', time: 'WK 03–07', left: 'CONNECTING',   mid: '12 NODES',      right: '99.8% UPTIME' },
+      { title: 'OPERATE · LIVE ON RETAINER',    time: 'WK 07–10+',left: 'MONITORING',   mid: '0 OPEN ALERTS', right: 'T+ ∞' },
+    ];
+    document.querySelectorAll('.mobile-illus[data-mobile-scene]').forEach(mount => {
+      const idx = Number(mount.dataset.mobileScene);
+      const sourceScene = document.querySelector(`.stick-wrap-aside .illus-scene[data-scene="${idx}"]`);
+      if (!sourceScene) return;
+      const meta = SCENE_META[idx];
+
+      // corner marks
+      ['tl','tr','bl','br'].forEach(c => {
+        const span = document.createElement('span');
+        span.className = `corner ${c}`;
+        span.setAttribute('aria-hidden','true');
+        mount.appendChild(span);
+      });
+
+      // scene label
+      const label = document.createElement('div');
+      label.className = 'scene-label';
+      label.innerHTML = `<span class="dot"></span><span>${meta.title}</span>`;
+      mount.appendChild(label);
+
+      // progress chip
+      const chip = document.createElement('div');
+      chip.className = 'progress-chip';
+      chip.textContent = meta.time;
+      mount.appendChild(chip);
+
+      // scene-meta (bottom row) — keep it short on mobile
+      const metaRow = document.createElement('div');
+      metaRow.className = 'scene-meta';
+      metaRow.innerHTML = `<span>${meta.left}</span><span>${meta.mid}</span><span>${meta.right}</span>`;
+      mount.appendChild(metaRow);
+
+      // clone the SVG itself (the only meaningful child of .illus-scene)
+      const svg = sourceScene.querySelector('svg');
+      if (svg) {
+        const clone = svg.cloneNode(true);
+        clone.removeAttribute('id');
+        // ensure it fills the mobile container
+        clone.setAttribute('class', 'absolute inset-0 w-full h-full');
+        mount.appendChild(clone);
+      }
+    });
+
+    const phaseCounter = document.getElementById('phase-counter');
+    const sceneTitle   = document.getElementById('scene-title');
+    const sceneTime    = document.getElementById('scene-time');
+    const sceneMetaLeft  = document.getElementById('scene-meta-left');
+    const sceneMetaMid   = document.getElementById('scene-meta-mid');
+    const sceneMetaRight = document.getElementById('scene-meta-right');
+
+    const META = [
+      null,
+      { title: 'DISCOVER · MAPPING THE STACK',  time: 'WK 01–02', left: 'SCANNING',     mid: '12 PLATFORMS',  right: 'T −∞ → T+' },
+      { title: 'AUDIT · QUANTIFYING GAPS',      time: 'WK 02–03', left: 'MEASURING',    mid: '6 SYSTEMS',     right: 'ROI €74K/YR' },
+      { title: 'INTEGRATE · BUILDING THE CORE', time: 'WK 03–07', left: 'CONNECTING',   mid: '12 NODES',      right: '99.8% UPTIME' },
+      { title: 'OPERATE · LIVE ON RETAINER',    time: 'WK 07–10+',left: 'MONITORING',   mid: '0 OPEN ALERTS', right: 'T+ ∞' },
+    ];
+
+    let activeStep = 1;
+
+    function setActive(n) {
+      if (n === activeStep) return;
+      activeStep = n;
+      stepRows.forEach(row => {
+        const idx = Number(row.dataset.step);
+        row.classList.toggle('is-active', idx === n);
+      });
+      scenes.forEach(s => {
+        const idx = Number(s.dataset.scene);
+        s.classList.toggle('is-active', idx === n);
+      });
+      const meta = META[n];
+      if (meta) {
+        sceneTitle.textContent  = meta.title;
+        sceneTime.textContent   = meta.time;
+        sceneMetaLeft.textContent  = meta.left;
+        sceneMetaMid.textContent   = meta.mid;
+        sceneMetaRight.textContent = meta.right;
+        phaseCounter.textContent = `PHASE 0${n} / 04`;
+      }
+    }
+
+    // Initialize: first step is active
+    document.querySelector('.step-row[data-step="1"]').classList.add('is-active');
+
+    // IntersectionObserver: fire when ~middle of step crosses ~middle of viewport
+    const observer = new IntersectionObserver((entries) => {
+      // Find the entry with the largest intersectionRatio that is intersecting
+      let bestIdx = activeStep;
+      let bestRatio = 0;
+      // Look across all rows by position relative to viewport center
+      const viewportCenter = window.innerHeight / 2;
+      let bestDist = Infinity;
+      stepRows.forEach(row => {
+        const rect = row.getBoundingClientRect();
+        const center = rect.top + rect.height / 2;
+        const dist = Math.abs(center - viewportCenter);
+        if (rect.bottom > 0 && rect.top < window.innerHeight) {
+          if (dist < bestDist) {
+            bestDist = dist;
+            bestIdx = Number(row.dataset.step);
+          }
+        }
+      });
+      setActive(bestIdx);
+    }, {
+      threshold: [0, 0.25, 0.5, 0.75, 1],
+      rootMargin: '-30% 0px -30% 0px'
+    });
+
+    stepRows.forEach(r => observer.observe(r));
+
+    // Also re-evaluate on scroll for smoother snapping
+    let raf = null;
+    function onScroll() {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = null;
+        const viewportCenter = window.innerHeight / 2;
+        let bestIdx = 1;
+        let bestDist = Infinity;
+        stepRows.forEach(row => {
+          const rect = row.getBoundingClientRect();
+          const center = rect.top + rect.height / 2;
+          const dist = Math.abs(center - viewportCenter);
+          if (dist < bestDist) {
+            bestDist = dist;
+            bestIdx = Number(row.dataset.step);
+          }
+        });
+        setActive(bestIdx);
+      });
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    onScroll();
+  })();
+  </script>
+</body>
+</html>
