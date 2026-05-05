@@ -10,7 +10,10 @@ const ROOT = path.dirname(fileURLToPath(import.meta.url));
 
 // Order matches the page flow.
 // Sections that don't exist yet (e.g. apex-wealth-card, vignettes) are skipped silently.
+// "plain-language" is the new "in plain English" intro that slows the visitor
+// down for 30 seconds before the dense interactive sections.
 const sections = [
+  { id: "plain",        file: "sections/plain-language.html"   },
   { id: "capabilities", file: "sections/capabilities.html"     },
   { id: "demos",        file: "sections/playable-demos.html"   },
   { id: "vignettes",    file: "sections/vignettes.html"        },

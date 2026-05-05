@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AQL — In plain language</title>
+  <meta name="description" content="What AQL actually does, in plain language: connect tools, build dashboards, design CRMs, automate the repetitive work." />
+  <meta name="theme-color" content="#0B0A08" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0B0A08;
+      --bg-elevated: #15130F;
+      --bg-floating: #1F1B14;
+      --border: #2A2620;
+      --border-bright: #3A3527;
+      --cream: #EDE6D3;
+      --cream-dim: #B8B0A0;
+      --muted: #6B6557;
+      --lime: #CCFF33;
+      --lime-dim: #A8D628;
+      --amber: #E97451;
+      --danger: #FF4538;
+    }
+    * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    html, body { background: var(--bg); }
+    body {
+      color: var(--cream);
+      font-family: 'Manrope', sans-serif;
+      overflow-x: hidden;
+    }
+    .font-serif-italic { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; }
+    .font-serif { font-family: 'Instrument Serif', serif; font-weight: 400; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    .tracking-spec { letter-spacing: 0.16em; }
+    .tracking-display { letter-spacing: -0.035em; }
+
+    /* Grain overlay */
+    .grain::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+      opacity: 0.08; mix-blend-mode: overlay; z-index: 100;
+    }
+
+    /* Atmospheric backdrop — softer than hero, gentlest section */
+    .plain-glow {
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 50% 35% at 78% 20%, rgba(204, 255, 51, 0.045) 0%, transparent 65%),
+        radial-gradient(ellipse 45% 35% at 12% 85%, rgba(233, 116, 81, 0.035) 0%, transparent 65%),
+        radial-gradient(ellipse 90% 50% at 50% 50%, rgba(237, 230, 211, 0.018) 0%, transparent 70%);
+    }
+
+    .tech-grid {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(237, 230, 211, 0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(237, 230, 211, 0.018) 1px, transparent 1px);
+      background-size: 80px 80px;
+      mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black, transparent 90%);
+    }
+
+    /* Highlight under "actually" */
+    .lime-underline {
+      background-image: linear-gradient(transparent 78%, rgba(204, 255, 51, 0.55) 78%, rgba(204, 255, 51, 0.55) 93%, transparent 93%);
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      padding: 0 0.04em;
+    }
+
+    /* Headline reveal — same family of motion as the hero */
+    .reveal-line {
+      display: block; overflow: hidden; padding-bottom: 0.05em;
+    }
+    .reveal-line > .reveal-inner {
+      display: inline-block;
+      transform: translateY(110%);
+      transition: transform 1.05s cubic-bezier(0.2, 0.85, 0.25, 1);
+    }
+    .is-revealed .reveal-line > .reveal-inner { transform: translateY(0); }
+    .is-revealed .reveal-line.d1 > .reveal-inner { transition-delay: 0.12s; }
+    .is-revealed .reveal-line.d2 > .reveal-inner { transition-delay: 0.26s; }
+
+    /* Row stagger reveal — IO-driven, only first entry */
+    .row-reveal {
+      opacity: 0;
+      transform: translateY(14px);
+      transition:
+        opacity 0.95s cubic-bezier(0.2, 0.8, 0.25, 1),
+        transform 0.95s cubic-bezier(0.2, 0.8, 0.25, 1);
+    }
+    .is-revealed .row-reveal { opacity: 1; transform: translateY(0); }
+    .is-revealed .row-reveal.r1 { transition-delay: 0.55s; }
+    .is-revealed .row-reveal.r2 { transition-delay: 0.63s; }
+    .is-revealed .row-reveal.r3 { transition-delay: 0.71s; }
+    .is-revealed .row-reveal.r4 { transition-delay: 0.79s; }
+
+    /* Kicker + caption fade */
+    .meta-fade { opacity: 0; transform: translateY(8px); transition: opacity 0.9s ease, transform 0.9s ease; }
+    .is-revealed .meta-fade { opacity: 1; transform: translateY(0); }
+    .is-revealed .meta-fade.m1 { transition-delay: 0s; }
+    .is-revealed .meta-fade.m2 { transition-delay: 0.95s; }
+
+    /* Plain-language row */
+    .pl-row {
+      display: grid;
+      grid-template-columns: 108px auto 1fr;
+      align-items: center;
+      column-gap: 1.1rem;
+      padding: 1.55rem 0;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .pl-row:first-of-type { border-top: 1px solid var(--border); }
+
+    .pl-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 300;
+      font-size: clamp(1.65rem, 2.3vw, 2.6rem);
+      line-height: 1;
+      color: var(--cream-dim);
+      letter-spacing: -0.02em;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.42rem;
+      white-space: nowrap;
+    }
+    .pl-num .dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--lime);
+      box-shadow: 0 0 10px rgba(204, 255, 51, 0.55);
+      transform: translateY(-0.05em);
+    }
+
+    .pl-text {
+      font-family: 'Instrument Serif', serif;
+      font-weight: 400;
+      font-style: normal;
+      font-size: clamp(1.1rem, 1.9vw, 1.55rem);
+      line-height: 1.4;
+      color: var(--cream);
+      letter-spacing: -0.005em;
+    }
+    .pl-text em {
+      font-style: italic;
+      color: var(--cream);
+      background-image: linear-gradient(transparent 78%, rgba(204, 255, 51, 0.32) 78%, rgba(204, 255, 51, 0.32) 92%, transparent 92%);
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      padding: 0 0.04em;
+    }
+
+    .pl-tick {
+      width: 0;
+      height: 1px;
+      background: var(--lime);
+      box-shadow: 0 0 10px rgba(204, 255, 51, 0.5);
+      transition: width 0.45s cubic-bezier(0.2, 0.85, 0.25, 1);
+      align-self: center;
+      justify-self: start;
+    }
+
+    /* Hover only on devices that support it */
+    @media (hover: hover) {
+      .pl-row { transition: background 0.3s ease; }
+      .pl-row:hover { background: linear-gradient(90deg, rgba(237, 230, 211, 0.018) 0%, transparent 80%); }
+      .pl-row:hover .pl-num { color: var(--cream); }
+      .pl-row:hover .pl-text { color: #F8F2DF; }
+      .pl-row:hover .pl-tick { width: 28px; }
+    }
+
+    /* Mobile layout: number sits smaller above the sentence */
+    @media (max-width: 640px) {
+      .pl-row {
+        grid-template-columns: auto auto 1fr;
+        grid-template-rows: auto auto;
+        column-gap: 0.75rem;
+        row-gap: 0.55rem;
+        padding: 1.3rem 0;
+      }
+      .pl-num {
+        grid-row: 1 / 2;
+        grid-column: 1 / 2;
+        font-size: 0.8rem;
+        letter-spacing: 0.18em;
+        font-weight: 400;
+        color: var(--muted);
+        gap: 0.5rem;
+      }
+      .pl-num .dot { width: 4px; height: 4px; transform: translateY(0); }
+      .pl-tick {
+        grid-row: 1 / 2;
+        grid-column: 2 / 3;
+        width: 18px;
+      }
+      .pl-text {
+        grid-row: 2 / 3;
+        grid-column: 1 / 4;
+        font-size: 1.18rem;
+        line-height: 1.45;
+      }
+    }
+
+    /* Don't ever animate everything */
+    /* No transition-all anywhere. */
+  </style>
+</head>
+<body class="grain min-h-screen relative">
+  <div class="tech-grid"></div>
+
+  <section id="plain-language" class="relative">
+    <div class="plain-glow"></div>
+
+    <div class="relative z-10 max-w-[1100px] mx-auto px-6 lg:px-12 py-24 lg:py-32" data-reveal-root>
+
+      <!-- Kicker -->
+      <div class="meta-fade m1 flex items-center justify-center gap-3 font-mono text-[10.5px] tracking-spec uppercase text-[var(--cream-dim)]">
+        <span class="block w-7 h-px bg-[var(--cream-dim)]"></span>
+        <span>In plain language</span>
+        <span class="block w-7 h-px bg-[var(--cream-dim)]"></span>
+      </div>
+
+      <!-- Headline -->
+      <h2 class="mt-7 text-center font-serif text-[clamp(2.4rem,5.5vw,4.6rem)] leading-[0.98] tracking-display text-[var(--cream)]">
+        <span class="reveal-line"><span class="reveal-inner">Here&rsquo;s what</span></span>
+        <span class="reveal-line d1"><span class="reveal-inner font-serif-italic">we <span class="lime-underline">actually</span> do.</span></span>
+      </h2>
+
+      <!-- The four sentences -->
+      <ol class="mt-14 lg:mt-16 list-none">
+        <li class="row-reveal r1">
+          <div class="pl-row">
+            <span class="pl-num"><span>01</span><span class="dot" aria-hidden="true"></span></span>
+            <span class="pl-tick" aria-hidden="true"></span>
+            <p class="pl-text">We make your <em>scattered</em> tools talk to each other.</p>
+          </div>
+        </li>
+        <li class="row-reveal r2">
+          <div class="pl-row">
+            <span class="pl-num"><span>02</span><span class="dot" aria-hidden="true"></span></span>
+            <span class="pl-tick" aria-hidden="true"></span>
+            <p class="pl-text">We build the dashboards your team <em>actually</em> runs the business from.</p>
+          </div>
+        </li>
+        <li class="row-reveal r3">
+          <div class="pl-row">
+            <span class="pl-num"><span>03</span><span class="dot" aria-hidden="true"></span></span>
+            <span class="pl-tick" aria-hidden="true"></span>
+            <p class="pl-text">We design CRMs and internal tools for the way <em>your</em> team works.</p>
+          </div>
+        </li>
+        <li class="row-reveal r4">
+          <div class="pl-row">
+            <span class="pl-num"><span>04</span><span class="dot" aria-hidden="true"></span></span>
+            <span class="pl-tick" aria-hidden="true"></span>
+            <p class="pl-text">We automate the repetitive work &mdash; so your operators can <em>think</em>.</p>
+          </div>
+        </li>
+      </ol>
+
+      <!-- Caption -->
+      <p class="meta-fade m2 mt-14 text-center font-mono text-[10.5px] tracking-spec uppercase text-[var(--cream-dim)]">
+        &darr; Below: the work, the process, the proof.
+      </p>
+    </div>
+  </section>
+
+  <script>
+    (() => {
+      const root = document.querySelector('[data-reveal-root]');
+      if (!root) return;
+
+      // Respect reduced motion
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        root.classList.add('is-revealed');
+        return;
+      }
+
+      const io = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            root.classList.add('is-revealed');
+            observer.disconnect();
+          }
+        });
+      }, { threshold: 0.18, rootMargin: '0px 0px -8% 0px' });
+
+      io.observe(root);
+    })();
+  </script>
+</body>
+</html>
