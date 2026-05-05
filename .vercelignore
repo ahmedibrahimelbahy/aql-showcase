@@ -1,0 +1,21 @@
+# Dev-only — never deploy these
+node_modules/
+temporary screenshots/
+.git/
+
+# Local dev tooling (not used at runtime — Vercel just serves the built index.html)
+serve.mjs
+screenshot.mjs
+screenshot-mobile.mjs
+screenshot-scroll.mjs
+screenshot-og.mjs
+audit-overflow.mjs
+build.mjs
+
+# Source files for the build — we ship the merged index.html, not the parts
+_hero.template.html
+sections/
+og.html
+
+# Lockfiles aren't needed for static deploy
+package-lock.json
