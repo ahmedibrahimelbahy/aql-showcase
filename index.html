@@ -5083,7 +5083,7 @@
           <span>Fig.04 / The Process</span>
         </div>
         <h2 class="fade-up d1 font-serif text-[clamp(2.4rem,5vw,4.4rem)] leading-[1.0] tracking-display text-[var(--cream)]">
-          Four steps. Six to ten weeks.<br/>
+          Four steps. <span class="font-serif-italic">Scoped per project.</span><br/>
           <span class="font-serif-italic">One <span class="lime-underline">unified</span> core.</span>
         </h2>
       </div>
@@ -5092,7 +5092,7 @@
           Engagement-light, hands-on with the operators. We don't run agency theatre — we sit beside your team, audit what's already running, then ship the connective tissue your stack should have had on day one.
         </p>
         <div class="fade-up d3 flex flex-wrap items-center gap-3">
-          <span class="pill"><span class="pill-dot lime"></span>4 PHASES · 6–10 WK</span>
+          <span class="pill"><span class="pill-dot lime"></span>4 PHASES · SCOPED PER PROJECT</span>
           <span class="pill">2 OPERATORS · 1 PM</span>
         </div>
       </div>
@@ -5126,7 +5126,7 @@
               <span id="scene-title">DISCOVER · MAPPING THE STACK</span>
             </div>
             <div class="progress-chip">
-              <span id="scene-time">WK 01–02</span>
+              <span id="scene-time">PHASE 01 · KICK-OFF</span>
             </div>
             <div class="scene-meta">
               <span id="scene-meta-left">SCANNING</span>
@@ -5503,7 +5503,7 @@
 
           <div class="flex items-baseline justify-between gap-6 mb-6">
             <span class="step-num">01</span>
-            <span class="pill"><span class="pill-dot lime"></span>WK 01–02</span>
+            <span class="pill"><span class="pill-dot lime"></span>PHASE 01 · KICK-OFF</span>
           </div>
 
           <div class="step-body">
@@ -5546,7 +5546,7 @@
 
           <div class="flex items-baseline justify-between gap-6 mb-6">
             <span class="step-num">02</span>
-            <span class="pill"><span class="pill-dot lime"></span>WK 02–03</span>
+            <span class="pill"><span class="pill-dot lime"></span>PHASE 02 · DEEP DIVE</span>
           </div>
 
           <div class="step-body">
@@ -5589,7 +5589,7 @@
 
           <div class="flex items-baseline justify-between gap-6 mb-6">
             <span class="step-num">03</span>
-            <span class="pill"><span class="pill-dot lime"></span>WK 03–07</span>
+            <span class="pill"><span class="pill-dot lime"></span>PHASE 03 · THE BUILD</span>
           </div>
 
           <div class="step-body">
@@ -5632,7 +5632,7 @@
 
           <div class="flex items-baseline justify-between gap-6 mb-6">
             <span class="step-num">04</span>
-            <span class="pill pill-lime">WK 07–10+</span>
+            <span class="pill pill-lime">PHASE 04 · ONGOING</span>
           </div>
 
           <div class="step-body">
@@ -5643,7 +5643,7 @@
               The system ships into operators' hands. They get trained — properly, in their own language, with runbooks they actually open. Alerting goes live. We sit in your Slack.
             </p>
             <p class="text-[var(--cream-dim)] text-[1.02rem] leading-[1.7] max-w-[52ch] mb-8">
-              Then we stay on retainer to iterate. Every operational layer we've shipped is still running on the same core, two years on.
+              Then we stay on retainer to iterate. Every operational layer we've shipped is still running on the same core, long after launch.
             </p>
 
             <div class="font-mono text-[10px] tracking-spec uppercase text-[var(--muted)] mb-3 flex items-center gap-3">
@@ -5665,7 +5665,7 @@
     <!-- ============== FOOTER LINK ============== -->
     <div class="relative max-w-[1440px] mx-auto px-6 lg:px-12 py-16 border-t border-[var(--border)] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
       <div class="font-serif text-[clamp(1.4rem,2.2vw,2rem)] leading-[1.25] text-[var(--cream-dim)] max-w-[48ch]">
-        Same core, two years on. <span class="text-[var(--cream)] font-serif-italic">Quietly running</span> across every brand we've shipped.
+        Same core, long after launch. <span class="text-[var(--cream)] font-serif-italic">Quietly running</span> across every brand we've shipped.
       </div>
       <a href="#contact" class="continue-link group">
         <span class="bar"></span>
@@ -7761,10 +7761,10 @@
     // is fully self-contained per step on phone-width.
     const SCENE_META = [
       null,
-      { title: 'DISCOVER · MAPPING THE STACK',  time: 'WK 01–02', left: 'SCANNING',     mid: '12 PLATFORMS',  right: 'T −∞ → T+' },
-      { title: 'AUDIT · QUANTIFYING GAPS',      time: 'WK 02–03', left: 'MEASURING',    mid: '6 SYSTEMS',     right: 'ROI €74K/YR' },
-      { title: 'INTEGRATE · BUILDING THE CORE', time: 'WK 03–07', left: 'CONNECTING',   mid: '12 NODES',      right: '99.8% UPTIME' },
-      { title: 'OPERATE · LIVE ON RETAINER',    time: 'WK 07–10+',left: 'MONITORING',   mid: '0 OPEN ALERTS', right: 'T+ ∞' },
+      { title: 'DISCOVER · MAPPING THE STACK',  time: 'PHASE 01 · KICK-OFF',  left: 'SCANNING',     mid: '12 PLATFORMS',  right: 'T −∞ → T+' },
+      { title: 'AUDIT · QUANTIFYING GAPS',      time: 'PHASE 02 · DEEP DIVE', left: 'MEASURING',    mid: '6 SYSTEMS',     right: 'ROI €74K/YR' },
+      { title: 'INTEGRATE · BUILDING THE CORE', time: 'PHASE 03 · THE BUILD', left: 'CONNECTING',   mid: '12 NODES',      right: '99.8% UPTIME' },
+      { title: 'OPERATE · LIVE ON RETAINER',    time: 'PHASE 04 · ONGOING',   left: 'MONITORING',   mid: '0 OPEN ALERTS', right: 'T+ ∞' },
     ];
     document.querySelectorAll('.mobile-illus[data-mobile-scene]').forEach(mount => {
       const idx = Number(mount.dataset.mobileScene);
@@ -7818,10 +7818,10 @@
 
     const META = [
       null,
-      { title: 'DISCOVER · MAPPING THE STACK',  time: 'WK 01–02', left: 'SCANNING',     mid: '12 PLATFORMS',  right: 'T −∞ → T+' },
-      { title: 'AUDIT · QUANTIFYING GAPS',      time: 'WK 02–03', left: 'MEASURING',    mid: '6 SYSTEMS',     right: 'ROI €74K/YR' },
-      { title: 'INTEGRATE · BUILDING THE CORE', time: 'WK 03–07', left: 'CONNECTING',   mid: '12 NODES',      right: '99.8% UPTIME' },
-      { title: 'OPERATE · LIVE ON RETAINER',    time: 'WK 07–10+',left: 'MONITORING',   mid: '0 OPEN ALERTS', right: 'T+ ∞' },
+      { title: 'DISCOVER · MAPPING THE STACK',  time: 'PHASE 01 · KICK-OFF',  left: 'SCANNING',     mid: '12 PLATFORMS',  right: 'T −∞ → T+' },
+      { title: 'AUDIT · QUANTIFYING GAPS',      time: 'PHASE 02 · DEEP DIVE', left: 'MEASURING',    mid: '6 SYSTEMS',     right: 'ROI €74K/YR' },
+      { title: 'INTEGRATE · BUILDING THE CORE', time: 'PHASE 03 · THE BUILD', left: 'CONNECTING',   mid: '12 NODES',      right: '99.8% UPTIME' },
+      { title: 'OPERATE · LIVE ON RETAINER',    time: 'PHASE 04 · ONGOING',   left: 'MONITORING',   mid: '0 OPEN ALERTS', right: 'T+ ∞' },
     ];
 
     let activeStep = 1;
